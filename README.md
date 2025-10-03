@@ -1,4 +1,4 @@
-# 🎓 Proof of Concept - Modules Zoeken, Filteren & Favorieten
+# 🎓 Proof of Concept
 
 Dit project is een Proof of Concept (PoC) voor een studie-informatiesysteem waarin studenten modules kunnen doorzoeken, filteren, bekijken en opslaan als favoriet. De focus ligt op een werkende basisapplicatie met frontend, backend en MongoDB als persistente databron.
 
