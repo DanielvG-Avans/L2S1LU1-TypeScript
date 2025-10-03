@@ -1,5 +1,5 @@
 {
-  "name": "lalalala",
+  "name": "l2s1lu1-typescript",
   "private": true,
   "scripts": {
     "build": "turbo run build",
@@ -16,9 +16,5 @@
   "engines": {
     "node": ">=18"
   },
-  "packageManager": "npm@11.5.2",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ]
+  "packageManager": "npm@11.5.2"
 }
