@@ -1,36 +1,67 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
+# Node
+node_modules/
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# local env files
-.env*.local
-.env
+# Build outputs
+dist/
+**/dist/
+build/
+out/
 
-# vercel
-.vercel
-
-# typescript
+# TypeScript build info
 *.tsbuildinfo
-next-env.d.ts
+
+# Environment files
+.env
+.env.*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Vite / React
+.vite/
+public/build/
+.cache/
+
+# NestJS specific (build/cache folders)
+.nest/
+# compiled output lives in dist/ so it's already ignored above
+
+# Testing / Coverage
+coverage/
+coverage-final.json
+nyc_output/
+.vitest/
+jest-*.json
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# IDEs / editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker / local containers
+docker-compose.override.yml
+.env.docker
+
+# Misc sensitive / local artifacts
+*.pem
+*.key
+*.crt
+*.seed
