@@ -1,0 +1,246 @@
+import React, { useEffect, useRef, useState } from "react";
+
+type User = {
+  name: string;
+  avatarUrl?: string;
+};
+
+type HeaderProps = {
+  isLoggedIn?: boolean;
+  user?: User;
+  onLogin?: () => void;
+  onLogout?: () => void;
+};
+
+const navItems = [
+  { title: "Home", href: "/" },
+  { title: "Features", href: "/features" },
+  { title: "Pricing", href: "/pricing" },
+  { title: "Docs", href: "/docs" },
+];
+
+const Header: React.FC<HeaderProps> = ({
+  isLoggedIn = false,
+  user,
+  onLogin,
+  onLogout,
+}) => {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    function onOutside(e: MouseEvent) {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(e.target as Node)
+      ) {
+        setProfileOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onOutside);
+    return () => document.removeEventListener("mousedown", onOutside);
+  }, []);
+
+  const initials = user
+    ? user.name
+        .split(" ")
+        .map((p) => p[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
+    : "";
+
+  return (
+    <header className="bg-white shadow-sm">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Left: Logo */}
+          <a
+            href="/"
+            className="flex items-center gap-3 text-gray-900 no-underline"
+            aria-label="Homepage">
+            <svg
+              className="w-8 h-8 text-indigo-600"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg">
+              <rect x="3" y="3" width="7" height="7" rx="1.5" fill="#6366F1" />
+              <rect
+                x="14"
+                y="14"
+                width="7"
+                height="7"
+                rx="1.5"
+                fill="#6366F1"
+                opacity="0.9"
+              />
+              <path d="M14 6L20 12" stroke="#fff" strokeWidth="1.5" />
+            </svg>
+            <span className="font-semibold text-lg">MyApp</span>
+          </a>
+
+          {/* Center: Nav (desktop) */}
+          <nav className="hidden md:flex items-center space-x-6">
+            {navItems.map((item) => (
+              <a
+                key={item.title}
+                href={item.href}
+                className="text-gray-600 hover:text-gray-900 transition-colors">
+                {item.title}
+              </a>
+            ))}
+          </nav>
+
+          {/* Right: Auth / Mobile toggle */}
+          <div className="flex items-center gap-3">
+            <div className="hidden md:block">
+              {isLoggedIn ? (
+                <div className="relative" ref={profileRef}>
+                  <button
+                    onClick={() => setProfileOpen((s) => !s)}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-gray-100 focus:outline-none"
+                    aria-haspopup="true"
+                    aria-expanded={profileOpen}>
+                    {user?.avatarUrl ? (
+                      <img
+                        src={user.avatarUrl}
+                        alt={user.name}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-medium">
+                        {initials}
+                      </span>
+                    )}
+                    <span className="text-sm text-gray-800">{user?.name}</span>
+                  </button>
+
+                  {profileOpen && (
+                    <div className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg py-1 z-10">
+                      <a
+                        href="/profile"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        Profile
+                      </a>
+                      <button
+                        onClick={() => {
+                          setProfileOpen(false);
+                          onLogout?.();
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={onLogin}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700 transition">
+                  Login
+                </button>
+              )}
+            </div>
+
+            {/* Mobile menu button */}
+            <button
+              className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:bg-gray-100"
+              onClick={() => setMobileOpen((s) => !s)}
+              aria-expanded={mobileOpen}
+              aria-label="Toggle menu">
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24">
+                {mobileOpen ? (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                ) : (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                )}
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile panel */}
+      {mobileOpen && (
+        <div className="md:hidden border-t">
+          <div className="px-4 pt-4 pb-3 space-y-2">
+            {navItems.map((item) => (
+              <a
+                key={item.title}
+                href={item.href}
+                className="block px-2 py-2 text-gray-700 rounded hover:bg-gray-50">
+                {item.title}
+              </a>
+            ))}
+
+            {isLoggedIn ? (
+              <div className="pt-2 border-t">
+                <div className="flex items-center gap-3 px-2 py-2">
+                  {user?.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.name}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-medium">
+                      {initials}
+                    </div>
+                  )}
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {user?.name}
+                    </div>
+                    <a
+                      href="/profile"
+                      className="text-xs text-gray-500 hover:underline">
+                      View profile
+                    </a>
+                  </div>
+                </div>
+                <div className="px-2 pb-3">
+                  <button
+                    onClick={() => {
+                      setMobileOpen(false);
+                      onLogout?.();
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-md bg-red-50 text-red-600 text-sm">
+                    Logout
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="pt-2 border-t px-2">
+                <button
+                  onClick={() => {
+                    setMobileOpen(false);
+                    onLogin?.();
+                  }}
+                  className="w-full px-3 py-2 rounded-md bg-indigo-600 text-white text-sm">
+                  Login
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </header>
+  );
+};
+
+export default Header;
