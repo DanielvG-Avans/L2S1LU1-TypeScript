@@ -1,0 +1,65 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/backend/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "apps/backend/**"
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: apps/backend
+
+      - name: Run tests
+        run: npm run test
+        working-directory: apps/backend
+
+      - name: Build application
+        run: npm run build
+        working-directory: apps/backend
+
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: apps/backend
+
+      - name: Build application
+        run: npm run build
+        working-directory: apps/backend
+
+      - name: Deploy to production
+        run: |
+          echo "Add your deployment script here"
+        working-directory: apps/backend
