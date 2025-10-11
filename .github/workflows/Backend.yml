@@ -62,11 +62,6 @@ jobs:
           name: backend-build
           path: backend-build
 
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.BACKEND_AZURE_CREDENTIALS }}
-
       - name: Deploy to production (Azure App Service)
         uses: azure/webapps-deploy@v2
         with:

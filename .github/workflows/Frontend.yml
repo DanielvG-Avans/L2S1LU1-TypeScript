@@ -55,11 +55,6 @@ jobs:
           name: frontend-build
           path: frontend-build
 
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.FRONTEND_AZURE_CREDENTIALS }}
-
       - name: Deploy to production
         uses: azure/webapps-deploy@v2
         with:
