@@ -21,8 +21,9 @@ const HomePage = () => {
             </div>
 
             <div className="mt-4 flex items-center justify-between">
-              <span className="text-xs text-gray-400">
-                Status: {idx % 2 ? "Not started" : "Completed"}
+              <span
+                className={`text-xs ${idx % 2 ? "text-red-500" : "text-green-500"}`}>
+                Status: {idx % 2 ? "Not started" : "Started"}
               </span>
               <button className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
                 Open
