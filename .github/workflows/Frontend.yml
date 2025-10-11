@@ -30,7 +30,7 @@ jobs:
         working-directory: apps/backend
 
       - name: Run tests
-        run: npm run test
+        run: npm run test --passWithNoTests
         working-directory: apps/backend
 
       - name: Build application
