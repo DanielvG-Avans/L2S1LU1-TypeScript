@@ -29,6 +29,62 @@ const HomePage = () => {
                 Open
               </button>
             </div>
+            <div>
+              <div className="flex items-center mt-3">
+                <button
+                  type="button"
+                  className="text-sm px-3 py-1 rounded transition-colors hover:bg-gray-100 flex items-center gap-2"
+                  data-fav={
+                    typeof window !== "undefined" &&
+                    localStorage.getItem(`module_fav_${idx}`)
+                      ? "true"
+                      : "false"
+                  }
+                  aria-pressed={
+                    typeof window !== "undefined" &&
+                    localStorage.getItem(`module_fav_${idx}`)
+                      ? "true"
+                      : "false"
+                  }
+                  onClick={(e) => {
+                    const btn = e.currentTarget as HTMLButtonElement;
+                    const key = `module_fav_${idx}`;
+                    const currentlyFav =
+                      btn.getAttribute("data-fav") === "true";
+                    const nextFav = !currentlyFav;
+
+                    // persist
+                    if (nextFav) localStorage.setItem(key, "1");
+                    else localStorage.removeItem(key);
+
+                    // reflect in attributes and classes
+                    btn.setAttribute("data-fav", String(nextFav));
+                    btn.setAttribute("aria-pressed", String(nextFav));
+                    btn.classList.toggle("text-yellow-500", nextFav);
+
+                    // update visible text (keeps UI responsive without hooks)
+                    const star = nextFav ? "★" : "☆";
+                    btn.querySelector(".fav-star")!.textContent = star;
+                    btn.querySelector(".fav-label")!.textContent = nextFav
+                      ? "Favorited"
+                      : "Favorite";
+                  }}>
+                  <span
+                    className={`fav-star ${typeof window !== "undefined" && localStorage.getItem(`module_fav_${idx}`) ? "text-yellow-500" : ""}`}>
+                    {typeof window !== "undefined" &&
+                    localStorage.getItem(`module_fav_${idx}`)
+                      ? "★"
+                      : "☆"}
+                  </span>
+                  <span className="fav-label ml-1">
+                    {typeof window !== "undefined" &&
+                    localStorage.getItem(`module_fav_${idx}`)
+                      ? "Favorited"
+                      : "Favorite"}
+                  </span>
+                </button>
+              </div>
+            </div>
           </div>
         ))}
       </div>
