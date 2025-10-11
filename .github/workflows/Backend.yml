@@ -60,6 +60,7 @@ jobs:
         working-directory: apps/backend
 
       - name: Deploy to production
-        run: |
-          echo "Add your deployment script here"
-        working-directory: apps/backend
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.BACKEND_AZURE_APPSERVICE_NAME }}
+          publish-profile: ${{ secrets.BACKEND_AZURE_PUBISH_PROFILE }}
