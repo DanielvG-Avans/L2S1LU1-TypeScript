@@ -42,10 +42,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: backend-build
-          path: |
-            apps/backend/dist
-            apps/backend/build
-            apps/backend/.output
+          path: apps/backend/dist
 
   deploy:
     needs: build-and-test
