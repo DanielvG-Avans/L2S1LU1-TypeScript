@@ -22,7 +22,6 @@ const navItems = [
 const Header: React.FC<HeaderProps> = ({
   isLoggedIn = false,
   user,
-  onLogin,
   onLogout,
 }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -134,13 +133,7 @@ const Header: React.FC<HeaderProps> = ({
                     </div>
                   )}
                 </div>
-              ) : (
-                <button
-                  onClick={onLogin}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700 transition">
-                  Login
-                </button>
-              )}
+              ) : null}
             </div>
 
             {/* Mobile menu button */}
@@ -224,18 +217,7 @@ const Header: React.FC<HeaderProps> = ({
                   </button>
                 </div>
               </div>
-            ) : (
-              <div className="pt-2 border-t px-2">
-                <button
-                  onClick={() => {
-                    setMobileOpen(false);
-                    onLogin?.();
-                  }}
-                  className="w-full px-3 py-2 rounded-md bg-indigo-600 text-white text-sm">
-                  Login
-                </button>
-              </div>
-            )}
+            ) : null}
           </div>
         </div>
       )}
