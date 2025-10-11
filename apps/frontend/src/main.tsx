@@ -1,20 +1,43 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { AuthLayout } from "./pages/Layouts/AuthLayout";
+import { Layout } from "./pages/Layouts/Layout";
 import { createRoot } from "react-dom/client";
-import { StrictMode } from "react";
-import HomePage from "./pages/Home";
 import LoginPage from "./pages/Login";
+import HomePage from "./pages/Home";
+import { StrictMode } from "react";
 import "./index.css";
-import Layout from "./Layout";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from "react-router-dom";
 
 const router = createBrowserRouter([
-  { path: "/", element: <HomePage /> },
-  { path: "/auth/login", element: <LoginPage /> },
+  {
+    // Main app layout (protected)
+    element: <Layout />,
+    children: [
+      {
+        path: "/",
+        element: (
+          <ProtectedRoute>
+            <HomePage />
+          </ProtectedRoute>
+        ),
+      },
+    ],
+  },
+  {
+    // Auth layout (login/register pages)
+    element: <AuthLayout />,
+    children: [{ path: "/auth/login", element: <LoginPage /> }],
+  },
+  // fallback for unknown routes
+  { path: "*", element: <Navigate to="/" /> },
 ]);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <Layout>
-      <RouterProvider router={router} />
-    </Layout>
+    <RouterProvider router={router} />
   </StrictMode>
 );
