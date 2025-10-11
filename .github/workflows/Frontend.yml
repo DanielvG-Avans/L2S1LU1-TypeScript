@@ -15,23 +15,33 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    concurrency:
+      group: frontend-${{ github.ref }}
+      cancel-in-progress: true
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
+      - name: Set up Node.js (with npm cache)
         uses: actions/setup-node@v3
         with:
           node-version: 22
+          cache: "npm"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci --prefer-offline --no-audit --progress=false
         working-directory: apps/frontend
 
       - name: Build application
         run: npm run build
         working-directory: apps/frontend
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-build
+          path: apps/frontend/build
 
   deploy:
     needs: build-and-test
@@ -39,24 +49,20 @@ jobs:
     if: github.ref == 'refs/heads/main'
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Download build artifact
+        uses: actions/download-artifact@v3
         with:
-          node-version: 22
+          name: frontend-build
+          path: frontend-build
 
-      - name: Install dependencies
-        run: npm install
-        working-directory: apps/frontend
-
-      - name: Build application
-        run: npm run build
-        working-directory: apps/frontend
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.FRONTEND_AZURE_CREDENTIALS }}
 
       - name: Deploy to production
         uses: azure/webapps-deploy@v2
         with:
-          app-name: ${{ env.FRONTEND_AZURE_APPSERVICE_NAME }}
-          publish-profile: ${{ secrets.FRONTEND_AZURE_PUBISH_PROFILE }}
+          package: ./frontend-build
+          app-name: ${{ secrets.FRONTEND_AZURE_APPSERVICE_NAME }}
+          publish-profile: ${{ secrets.FRONTEND_AZURE_PUBLISH_PROFILE }}

@@ -15,52 +15,61 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/backend
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
+      - name: Set up Node.js (with npm cache)
         uses: actions/setup-node@v3
         with:
           node-version: 22
+          cache: "npm"
 
       - name: Install dependencies
-        run: npm install
-        working-directory: apps/backend
+        run: npm ci
 
       - name: Run tests
         run: npm run test --passWithNoTests
-        working-directory: apps/backend
 
       - name: Build application
         run: npm run build
-        working-directory: apps/backend
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build
+          path: |
+            apps/backend/dist
+            apps/backend/build
+            apps/backend/.output
 
   deploy:
     needs: build-and-test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
         with:
-          node-version: 22
+          name: backend-build
+          path: backend-build
 
-      - name: Install dependencies
-        run: npm install
-        working-directory: apps/backend
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.BACKEND_AZURE_CREDENTIALS }}
 
-      - name: Build application
-        run: npm run build
-        working-directory: apps/backend
-
-      - name: Deploy to production
+      - name: Deploy to production (Azure App Service)
         uses: azure/webapps-deploy@v2
         with:
-          app-name: ${{ env.BACKEND_AZURE_APPSERVICE_NAME }}
-          publish-profile: ${{ secrets.BACKEND_AZURE_PUBISH_PROFILE }}
+          package: ./backend-build
+          app-name: ${{ secrets.BACKEND_AZURE_APPSERVICE_NAME }}
+          publish-profile: ${{ secrets.BACKEND_AZURE_PUBLISH_PROFILE }}
