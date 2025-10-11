@@ -1,7 +1,7 @@
 import ProtectedRoute from "./components/ProtectedRoute";
-import { AuthLayout } from "./pages/Layouts/AuthLayout";
-import { Layout } from "./pages/Layouts/Layout";
+import { AuthLayout } from "./layouts/AuthLayout";
 import { createRoot } from "react-dom/client";
+import { Layout } from "./layouts/Layout";
 import LoginPage from "./pages/Login";
 import HomePage from "./pages/Home";
 import { StrictMode } from "react";
