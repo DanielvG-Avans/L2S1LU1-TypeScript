@@ -1,10 +1,14 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { Logger, VersioningType, INestApplication } from "@nestjs/common";
+import * as dotenv from "dotenv";
 
+// Immediately Invoked Function Expression (IIFE) to allow use of async/await at the top level
+// and to encapsulate the application bootstrap logic
+// This pattern also helps in managing the application lifecycle and error handling
+// by allowing us to use try/catch and ensure proper cleanup on failure.
 void (async () => {
   let app: INestApplication | undefined;
-
   const logger = new Logger("Bootstrap");
 
   try {
@@ -26,6 +30,13 @@ void (async () => {
       prefix: "v",
     });
 
+    dotenv.config({ quiet: true });
+    logger.log("Environment variables loaded");
+    logger.debug(`Current Environment: ${process.env.NODE_ENV || "development"}`);
+    logger.debug(`Log Level: ${process.env.LOG_LEVEL || "not set"}`);
+    logger.debug(`CORS Origin: ${process.env.CORS_ORIGIN || "*"}`);
+
+    // Start the application
     const port = parseInt(process.env.PORT ?? "3001", 10);
     await app.listen(port);
     logger.log(`Application is running on http://localhost:${port}`);
