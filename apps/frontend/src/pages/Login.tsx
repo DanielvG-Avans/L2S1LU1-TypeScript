@@ -16,7 +16,7 @@ const Login = () => {
     setErrorMessage("");
     setSuccessMessage("");
 
-    if (!email || !password) {
+    if (!email.trim() || !password) {
       setErrorMessage("Please enter both email and password.");
       return;
     }
@@ -24,26 +24,57 @@ const Login = () => {
     try {
       const loginResponse = await fetchBackend("/auth/login", {
         method: "POST",
-        body: JSON.stringify({ email, password }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
       });
 
+      // Read body safely (handle non-json responses)
+      const raw = await (loginResponse as unknown as Response).text();
+      let loginData: any = null;
+      try {
+        loginData = raw ? JSON.parse(raw) : null;
+      } catch {
+        loginData = { _raw: raw };
+      }
+
       if (!loginResponse.ok) {
-        setErrorMessage("Error man!");
+        // Prefer structured message from backend, fall back to status text
+        const backendMessage =
+          loginData?.message || loginData?.error || loginData?._raw || loginResponse.statusText;
+
+        if (loginResponse.status === 401) {
+          setErrorMessage("Invalid credentials. Please check your email and password.");
+        } else if (loginResponse.status === 400) {
+          setErrorMessage(backendMessage || "Bad request. Please verify your input.");
+        } else if (loginResponse.status >= 500) {
+          setErrorMessage("Server error. Please try again later.");
+        } else {
+          setErrorMessage(backendMessage || `Request failed with status ${loginResponse.status}.`);
+        }
+
         return;
       }
 
-      const loginData = loginResponse.json();
-      if (!loginData) {
-        setErrorMessage("Backend Error man!");
-        return;
-      }
+      // Successful response
+      setSuccessMessage("Login successful!");
+      // Clear sensitive input
+      setPassword("");
 
-      setSuccessMessage("Login successfull!");
-      return setTimeout(() => {
-        navigate("/");
-      }, 1000);
+      // Optional: use returned token/info from loginData if present (e.g. store in localStorage)
+      // Example: if (loginData?.token) localStorage.setItem("token", loginData.token);
+
+      setTimeout(() => {
+        navigate("/", { replace: true });
+      }, 800);
     } catch (err: unknown) {
-      setErrorMessage(`${err}`);
+      console.error("Unexpected login error:", err);
+      if (err instanceof Error && err.message) {
+        setErrorMessage(err.message);
+      } else {
+        setErrorMessage(
+          "An unexpected error occurred. Please check your connection and try again.",
+        );
+      }
     }
   };
 
