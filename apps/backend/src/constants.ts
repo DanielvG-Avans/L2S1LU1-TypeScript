@@ -12,4 +12,8 @@ if (!databaseUrl) {
   throw new Error("DATABASE_URL is not defined");
 }
 
-export { jwtSecret, databaseUrl };
+const nodeEnv = process.env.NODE_ENV || "development";
+const logLevel = process.env.LOG_LEVEL || "not set";
+const corsOrigin = process.env.CORS_ORIGIN || "*";
+
+export { jwtSecret, databaseUrl, nodeEnv, logLevel, corsOrigin };

@@ -1,7 +1,8 @@
-import { NestFactory } from "@nestjs/core";
+import cookieParser from "cookie-parser";
 import { AppModule } from "./app.module";
+import { NestFactory } from "@nestjs/core";
+import { corsOrigin, logLevel, nodeEnv } from "./constants";
 import { Logger, VersioningType, INestApplication } from "@nestjs/common";
-import * as dotenv from "dotenv";
 
 // Immediately Invoked Function Expression (IIFE) to allow use of async/await at the top level
 // and to encapsulate the application bootstrap logic
@@ -23,6 +24,9 @@ void (async () => {
       optionsSuccessStatus: 204,
     });
 
+    // Use cookie parser middleware
+    app.use(cookieParser());
+
     // Set global API prefix and versioning
     app.setGlobalPrefix("api");
     app.enableVersioning({
@@ -32,14 +36,12 @@ void (async () => {
     });
 
     // Load environment variables from .env file
-    dotenv.config({ quiet: true });
-    logger.log("Environment variables loaded");
-    logger.debug(`Current Environment: ${process.env.NODE_ENV || "development"}`);
-    logger.debug(`Log Level: ${process.env.LOG_LEVEL || "not set"}`);
-    logger.debug(`CORS Origin: ${process.env.CORS_ORIGIN || "*"}`);
+    logger.debug(`Current Environment: ${nodeEnv}`);
+    logger.debug(`Log Level: ${logLevel}`);
+    logger.debug(`CORS Origin: ${corsOrigin}`);
 
     // Swagger setup in development environment
-    if (process.env.NODE_ENV === "development") {
+    if (nodeEnv === "development") {
       const { SwaggerModule, DocumentBuilder } = await import("@nestjs/swagger");
 
       const config = new DocumentBuilder()
