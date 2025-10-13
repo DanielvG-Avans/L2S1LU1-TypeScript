@@ -3,6 +3,7 @@ import { Model, Types } from "mongoose";
 import { ModuleModel, type ModuleDocument } from "../schemas/module.schema";
 import { IModuleRepository } from "src/domain/module/module.repository.interface";
 import { Injectable } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
 
 /**
  * A Mongoose-backed implementation of IModuleRepository.
@@ -10,7 +11,7 @@ import { Injectable } from "@nestjs/common";
  */
 @Injectable()
 export class MongooseModuleRepository implements IModuleRepository {
-  constructor(private readonly model: Model<ModuleDocument>) {}
+  constructor(@InjectModel("Module") private readonly model: Model<ModuleDocument>) {}
 
   async find(): Promise<Module[]> {
     const docs = await this.model.find().lean().exec();
@@ -26,8 +27,8 @@ export class MongooseModuleRepository implements IModuleRepository {
   async create(data: Module): Promise<Module> {
     const created = await this.model.create(data as unknown as ModuleModel);
     // fetch lean doc to normalize
-    const doc = await this.model.findById(created._id).lean().exec();
-    return this.toDomain(doc as any);
+    const doc = (await this.model.findById(created._id).lean().exec()) as ModuleModel;
+    return this.toDomain(doc);
   }
 
   async update(id: string, data: Module): Promise<Module | null> {
@@ -48,13 +49,11 @@ export class MongooseModuleRepository implements IModuleRepository {
     return res !== null;
   }
 
-  private toDomain(doc: any): Module {
-    if (!doc || typeof doc !== "object") return {} as Module;
-
-    const { _id, __v, ...rest } = doc;
+  private toDomain(doc: ModuleModel & { _id?: Types.ObjectId | string }): Module {
+    const { _id, ...rest } = doc ?? ({} as ModuleModel);
     return {
-      ...rest,
+      ...(rest as unknown as Omit<Module, "id">),
       id: _id ? String(_id) : undefined,
-    } as Module;
+    };
   }
 }

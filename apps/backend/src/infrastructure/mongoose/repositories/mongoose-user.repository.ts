@@ -2,11 +2,12 @@ import { Model, Types } from "mongoose";
 import { User } from "src/domain/user/user";
 import { IUserRepository } from "src/domain/user/user.repository.interface";
 import { Injectable } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
 import { UserModel, type UserDocument } from "../schemas/user.schema";
 
 @Injectable()
 export class MongooseUserRepository implements IUserRepository {
-  constructor(private readonly model: Model<UserDocument>) {}
+  constructor(@InjectModel("User") private readonly model: Model<UserDocument>) {}
 
   async find(): Promise<User[]> {
     const docs = (await this.model.find().lean().exec()) as Array<
