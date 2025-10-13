@@ -1,4 +1,10 @@
-export const AUTH_SERVICE = Symbol("AUTH_SERVICE");
+// Central DI tokens (using Symbol for uniqueness)
 
-export const USER_REPOSITORY = Symbol("USER_REPOSITORY");
-export const MODULE_REPOSITORY = Symbol("MODULE_REPOSITORY");
+export const REPOSITORIES = {
+  USER: Symbol("REPOSITORIES.USER"),
+  MODULE: Symbol("REPOSITORIES.MODULE"),
+} as const;
+
+export const SERVICES = {
+  AUTH: Symbol("SERVICES.AUTH"),
+} as const;
