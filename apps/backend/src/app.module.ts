@@ -1,11 +1,20 @@
 import { Module } from "@nestjs/common";
+import { MongooseModule } from "@nestjs/mongoose";
+import { InterfacesModule } from "./interfaces/interfaces.module";
+import { ApplicationModule } from "./application/application.module";
 import { InfrastructureModule } from "./infrastructure/infrastructure.module";
-import { AuthService } from "./application/services/auth.service";
-import { AuthController } from "./interfaces/controllers/auth.controller";
+
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL is not defined");
+}
 
 @Module({
-  imports: [InfrastructureModule],
-  providers: [AuthService],
-  controllers: [AuthController],
+  imports: [
+    MongooseModule.forRoot(databaseUrl),
+    InfrastructureModule,
+    ApplicationModule,
+    InterfacesModule,
+  ],
 })
 export class AppModule {}
