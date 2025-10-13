@@ -45,6 +45,7 @@ void (async () => {
         .setTitle("API Documentation")
         .setDescription("API documentation for Avans Keuzekompas Backend")
         .setVersion("0.1.0")
+        .addCookieAuth()
         .addBearerAuth()
         .build();
       SwaggerModule.setup("api/docs", app, SwaggerModule.createDocument(app, config));
