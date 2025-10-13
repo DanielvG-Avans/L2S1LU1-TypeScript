@@ -7,7 +7,6 @@ const Login = () => {
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [remember, setRemember] = useState<boolean>(false);
 
   const [SuccessMessage, setSuccessMessage] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -127,17 +126,6 @@ const Login = () => {
             onChange={(e) => setPassword(e.target.value)}
             className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 placeholder-gray-500 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-amber-400 transition"
           />
-        </div>
-        <div className="flex items-center justify-between text-sm">
-          <label className="flex items-center gap-2 text-gray-700">
-            <input
-              type="checkbox"
-              className="h-4 w-4 rounded border-gray-300 text-amber-500 focus:ring-amber-300"
-              checked={remember}
-              onChange={(e) => setRemember(e.target.checked)}
-            />
-            Remember me
-          </label>
         </div>
 
         <div className="space-y-3 mt-2">
