@@ -26,8 +26,9 @@ void (async () => {
     // Set global API prefix and versioning
     app.setGlobalPrefix("api");
     app.enableVersioning({
-      type: VersioningType.URI,
-      prefix: "v",
+      type: VersioningType.HEADER,
+      header: "X-API-Version",
+      defaultVersion: "1",
     });
 
     // Load environment variables from .env file
