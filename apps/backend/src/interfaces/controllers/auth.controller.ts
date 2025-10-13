@@ -1,7 +1,10 @@
+import { nodeEnv } from "src/constants";
+import type { Response } from "express";
 import { SERVICES } from "src/di-tokens";
 import { ApiTags } from "@nestjs/swagger";
+import { User } from "src/domain/user/user";
 import type { loginDto } from "../dtos/login.dto";
-import type { IAuthService, loginResponse } from "src/application/ports/auth.port";
+import type { IAuthService } from "src/application/ports/auth.port";
 import {
   HttpException,
   HttpStatus,
@@ -10,6 +13,7 @@ import {
   Inject,
   Body,
   Post,
+  Res,
 } from "@nestjs/common";
 
 @ApiTags("auth")
@@ -22,7 +26,10 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post("login")
-  public async login(@Body() dto: loginDto): Promise<loginResponse> {
+  public async login(
+    @Body() dto: loginDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<User> {
     if (!dto || !dto.email || !dto.password) {
       throw new HttpException("Email and password are required", HttpStatus.UNAUTHORIZED);
     }
@@ -32,9 +39,17 @@ export class AuthController {
       if (!response) {
         throw new HttpException("Invalid email or password", HttpStatus.UNAUTHORIZED);
       }
-      return response;
-    } catch (error) {
-      throw new HttpException(`${error}`, HttpStatus.UNAUTHORIZED);
+
+      res.cookie("ACCESSTOKEN", response.accessToken, {
+        httpOnly: nodeEnv === "production",
+        secure: nodeEnv === "production",
+        sameSite: "lax",
+        maxAge: 3600000, // 1 hour
+      });
+      return response.user;
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new HttpException(message, HttpStatus.UNAUTHORIZED);
     }
   }
 }

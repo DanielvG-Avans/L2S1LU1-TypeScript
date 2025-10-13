@@ -11,7 +11,7 @@ import { InfrastructureModule } from "../infrastructure/infrastructure.module";
     JwtModule.register({
       global: true,
       secret: jwtSecret,
-      signOptions: { expiresIn: "24h" },
+      signOptions: { expiresIn: "1h" },
     }),
   ],
   providers: [{ provide: SERVICES.AUTH, useClass: AuthService }],
