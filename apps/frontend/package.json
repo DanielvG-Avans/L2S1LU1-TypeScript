@@ -1,7 +1,9 @@
 {
   "name": "frontend",
   "private": true,
+  "description": "",
   "version": "0.0.0",
+  "author": "Daniël van Ginneken",
   "type": "module",
   "scripts": {
     "installdeps": "npm i",

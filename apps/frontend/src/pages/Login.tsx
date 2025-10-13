@@ -7,34 +7,74 @@ const Login = () => {
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [remember, setRemember] = useState<boolean>(false);
 
   const [SuccessMessage, setSuccessMessage] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    if (!email.trim() || !password) {
+      setErrorMessage("Please enter both email and password.");
+      return;
+    }
+
     try {
       const loginResponse = await fetchBackend("/auth/login", {
         method: "POST",
-        body: JSON.stringify({ email, password, remember }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
       });
 
+      // Read body safely (handle non-json responses)
+      const raw = await (loginResponse as unknown as Response).text();
+      let loginData: any = null;
+      try {
+        loginData = raw ? JSON.parse(raw) : null;
+      } catch {
+        loginData = { _raw: raw };
+      }
+
       if (!loginResponse.ok) {
-        setErrorMessage("Error man!");
+        // Prefer structured message from backend, fall back to status text
+        const backendMessage =
+          loginData?.message || loginData?.error || loginData?._raw || loginResponse.statusText;
+
+        if (loginResponse.status === 401) {
+          setErrorMessage("Invalid credentials. Please check your email and password.");
+        } else if (loginResponse.status === 400) {
+          setErrorMessage(backendMessage || "Bad request. Please verify your input.");
+        } else if (loginResponse.status >= 500) {
+          setErrorMessage("Server error. Please try again later.");
+        } else {
+          setErrorMessage(backendMessage || `Request failed with status ${loginResponse.status}.`);
+        }
+
+        return;
       }
 
-      const loginData = loginResponse.json();
-      if (!loginData) {
-        setErrorMessage("Backend Error man!");
-      }
+      // Successful response
+      setSuccessMessage("Login successful!");
+      // Clear sensitive input
+      setPassword("");
 
-      setSuccessMessage("Login successfull!");
+      // Optional: use returned token/info from loginData if present (e.g. store in localStorage)
+      // Example: if (loginData?.token) localStorage.setItem("token", loginData.token);
+
       setTimeout(() => {
-        navigate("/");
-      }, 1000);
+        navigate("/", { replace: true });
+      }, 800);
     } catch (err: unknown) {
-      setErrorMessage(`${err}`);
+      console.error("Unexpected login error:", err);
+      if (err instanceof Error && err.message) {
+        setErrorMessage(err.message);
+      } else {
+        setErrorMessage(
+          "An unexpected error occurred. Please check your connection and try again.",
+        );
+      }
     }
   };
 
@@ -42,15 +82,10 @@ const Login = () => {
     <div className="w-full max-w-md bg-[#debeff] text-gray-900 backdrop-blur-md rounded-2xl shadow-2xl p-8">
       <header className="text-center mb-6">
         <h1 className="text-3xl font-semibold text-gray-900">Welcome</h1>
-        <p className="text-sm text-gray-700 mt-1">
-          Sign in to continue to Avans Keuzekompas
-        </p>
+        <p className="text-sm text-gray-700 mt-1">Sign in to continue to Avans Keuzekompas</p>
       </header>
 
-      <form
-        className="space-y-4"
-        aria-label="Login form"
-        onSubmit={handleLogin}>
+      <form className="space-y-4" aria-label="Login form" onSubmit={handleLogin}>
         <div className="relative">
           <label htmlFor="emailInput" className="">
             Email
@@ -61,7 +96,8 @@ const Login = () => {
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
-              aria-hidden>
+              aria-hidden
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -95,7 +131,8 @@ const Login = () => {
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
-              aria-hidden>
+              aria-hidden
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -121,30 +158,21 @@ const Login = () => {
             className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 placeholder-gray-500 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-amber-400 transition"
           />
         </div>
-        <div className="flex items-center justify-between text-sm">
-          <label className="flex items-center gap-2 text-gray-700">
-            <input
-              type="checkbox"
-              className="h-4 w-4 rounded border-gray-300 text-amber-500 focus:ring-amber-300"
-              checked={remember}
-              onChange={(e) => setRemember(e.target.checked)}
-            />
-            Remember me
-          </label>
-        </div>
 
         <div className="space-y-3 mt-2">
           {errorMessage && (
             <div
               role="alert"
               aria-live="assertive"
-              className="flex items-start gap-3 bg-red-50 border border-red-200 text-red-800 px-4 py-2 rounded-lg shadow-sm">
+              className="flex items-start gap-3 bg-red-50 border border-red-200 text-red-800 px-4 py-2 rounded-lg shadow-sm"
+            >
               <svg
                 className="w-5 h-5 flex-shrink-0"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-                aria-hidden>
+                aria-hidden
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -160,13 +188,15 @@ const Login = () => {
             <div
               role="status"
               aria-live="polite"
-              className="flex items-start gap-3 bg-green-50 border border-green-200 text-green-800 px-4 py-2 rounded-lg shadow-sm">
+              className="flex items-start gap-3 bg-green-50 border border-green-200 text-green-800 px-4 py-2 rounded-lg shadow-sm"
+            >
               <svg
                 className="w-5 h-5 flex-shrink-0"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-                aria-hidden>
+                aria-hidden
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -181,7 +211,8 @@ const Login = () => {
 
         <button
           type="submit"
-          className="w-full py-3 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white font-medium shadow hover:scale-[1.01] transform transition cursor-pointer">
+          className="w-full py-3 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white font-medium shadow hover:scale-[1.01] transform transition cursor-pointer"
+        >
           Sign in
         </button>
       </form>

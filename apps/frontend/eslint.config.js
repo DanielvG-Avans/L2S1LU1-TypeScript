@@ -1,15 +1,20 @@
 import js from "@eslint/js";
+import path from "node:path";
 import globals from "globals";
+import prettier from "prettier";
+import tseslint from "typescript-eslint";
+import { fileURLToPath } from "node:url";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
-import tseslint from "typescript-eslint";
 import { defineConfig, globalIgnores } from "eslint/config";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 
-// Ensure the TypeScript ESLint parser can resolve the correct tsconfig in a monorepo
+// Resolve current file and root
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const rootPrettierConfigPath = path.resolve(__dirname, "../../.prettierrc");
+
+// Load root Prettier config dynamically
+const rootPrettierConfig = await prettier.resolveConfig(rootPrettierConfigPath);
 
 export default defineConfig([
   globalIgnores(["dist"]),
@@ -28,6 +33,13 @@ export default defineConfig([
         // Disambiguate between multiple tsconfig roots in the monorepo
         tsconfigRootDir: __dirname,
       },
+    },
+    rules: {
+      // Prettier integration: enforce formatting according to root .prettierrc
+      "prettier/prettier": ["error", rootPrettierConfig || {}],
+    },
+    plugins: {
+      prettier: require("eslint-plugin-prettier"),
     },
   },
 ]);
