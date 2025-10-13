@@ -14,23 +14,33 @@ const Login = () => {
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    if (!email || !password) {
+      setErrorMessage("Please enter both email and password.");
+      return;
+    }
+
     try {
       const loginResponse = await fetchBackend("/auth/login", {
         method: "POST",
-        body: JSON.stringify({ email, password, remember }),
+        body: JSON.stringify({ email, password }),
       });
 
       if (!loginResponse.ok) {
         setErrorMessage("Error man!");
+        return;
       }
 
       const loginData = loginResponse.json();
       if (!loginData) {
         setErrorMessage("Backend Error man!");
+        return;
       }
 
       setSuccessMessage("Login successfull!");
-      setTimeout(() => {
+      return setTimeout(() => {
         navigate("/");
       }, 1000);
     } catch (err: unknown) {
@@ -42,15 +52,10 @@ const Login = () => {
     <div className="w-full max-w-md bg-[#debeff] text-gray-900 backdrop-blur-md rounded-2xl shadow-2xl p-8">
       <header className="text-center mb-6">
         <h1 className="text-3xl font-semibold text-gray-900">Welcome</h1>
-        <p className="text-sm text-gray-700 mt-1">
-          Sign in to continue to Avans Keuzekompas
-        </p>
+        <p className="text-sm text-gray-700 mt-1">Sign in to continue to Avans Keuzekompas</p>
       </header>
 
-      <form
-        className="space-y-4"
-        aria-label="Login form"
-        onSubmit={handleLogin}>
+      <form className="space-y-4" aria-label="Login form" onSubmit={handleLogin}>
         <div className="relative">
           <label htmlFor="emailInput" className="">
             Email
@@ -61,7 +66,8 @@ const Login = () => {
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
-              aria-hidden>
+              aria-hidden
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -95,7 +101,8 @@ const Login = () => {
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
-              aria-hidden>
+              aria-hidden
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -138,13 +145,15 @@ const Login = () => {
             <div
               role="alert"
               aria-live="assertive"
-              className="flex items-start gap-3 bg-red-50 border border-red-200 text-red-800 px-4 py-2 rounded-lg shadow-sm">
+              className="flex items-start gap-3 bg-red-50 border border-red-200 text-red-800 px-4 py-2 rounded-lg shadow-sm"
+            >
               <svg
                 className="w-5 h-5 flex-shrink-0"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-                aria-hidden>
+                aria-hidden
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -160,13 +169,15 @@ const Login = () => {
             <div
               role="status"
               aria-live="polite"
-              className="flex items-start gap-3 bg-green-50 border border-green-200 text-green-800 px-4 py-2 rounded-lg shadow-sm">
+              className="flex items-start gap-3 bg-green-50 border border-green-200 text-green-800 px-4 py-2 rounded-lg shadow-sm"
+            >
               <svg
                 className="w-5 h-5 flex-shrink-0"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-                aria-hidden>
+                aria-hidden
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -181,7 +192,8 @@ const Login = () => {
 
         <button
           type="submit"
-          className="w-full py-3 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white font-medium shadow hover:scale-[1.01] transform transition cursor-pointer">
+          className="w-full py-3 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white font-medium shadow hover:scale-[1.01] transform transition cursor-pointer"
+        >
           Sign in
         </button>
       </form>
