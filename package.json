@@ -12,6 +12,7 @@
     "dev:all": "turbo run dev --parallel"
   },
   "devDependencies": {
+    "@nestjs/swagger": "^11.2.0",
     "prettier": "^3.6.2",
     "turbo": "^2.5.8",
     "typescript": "5.9.2"

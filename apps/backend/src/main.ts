@@ -30,11 +30,26 @@ void (async () => {
       prefix: "v",
     });
 
+    // Load environment variables from .env file
     dotenv.config({ quiet: true });
     logger.log("Environment variables loaded");
     logger.debug(`Current Environment: ${process.env.NODE_ENV || "development"}`);
     logger.debug(`Log Level: ${process.env.LOG_LEVEL || "not set"}`);
     logger.debug(`CORS Origin: ${process.env.CORS_ORIGIN || "*"}`);
+
+    // Swagger setup in development environment
+    if (process.env.NODE_ENV === "development") {
+      const { SwaggerModule, DocumentBuilder } = await import("@nestjs/swagger");
+
+      const config = new DocumentBuilder()
+        .setTitle("API Documentation")
+        .setDescription("API documentation for Avans Keuzekompas Backend")
+        .setVersion("0.1.0")
+        .addBearerAuth()
+        .build();
+      SwaggerModule.setup("api/docs", app, SwaggerModule.createDocument(app, config));
+      logger.log("Swagger documentation available at /api/docs");
+    }
 
     // Start the application
     const port = parseInt(process.env.PORT ?? "3001", 10);
