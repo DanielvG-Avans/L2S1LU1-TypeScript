@@ -11,7 +11,9 @@
     "typescript",
     "backend",
     "api",
-    "nestjs-framework"
+    "nestjs-framework",
+    "mongodb",
+    "mongoose"
   ],
   "scripts": {
     "build": "nest build",
