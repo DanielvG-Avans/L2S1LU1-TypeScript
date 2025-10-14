@@ -1,8 +1,8 @@
 {
   "name": "frontend",
   "private": true,
-  "description": "",
-  "version": "0.0.0",
+  "description": "Vite React app for students to explore electives!",
+  "version": "0.2.0",
   "author": "Daniël van Ginneken",
   "type": "module",
   "scripts": {
