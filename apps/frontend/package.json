@@ -6,7 +6,6 @@
   "author": "Daniël van Ginneken",
   "type": "module",
   "scripts": {
-    "installdeps": "npm i",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
