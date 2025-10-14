@@ -2,6 +2,11 @@
   "name": "frontend",
   "private": true,
   "description": "Vite React app for students to explore electives!",
+  "keywords": [
+    "react",
+    "vite",
+    "tailwind"
+  ],
   "version": "0.2.0",
   "author": "Daniël van Ginneken",
   "type": "module",
