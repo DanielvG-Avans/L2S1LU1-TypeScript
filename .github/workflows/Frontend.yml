@@ -47,8 +47,11 @@ jobs:
 
   deploy:
     needs: build-and-test
-    runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
 
     steps:
       - name: Download build artifact
@@ -57,9 +60,29 @@ jobs:
           name: frontend-build
           path: frontend-build
 
-      - name: Deploy to production
-        uses: azure/webapps-deploy@v2
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
         with:
-          package: ./frontend-build
+          name: node-app
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_1B6D469AA8714652974A2CB8C5C07C4B }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9276C2D51C7B4BADB4F2C25F688222B3 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_7D3E4F49E74F41FFA6E598BF7E12B6A7 }}
+
+      - name: "Deploy to Azure Web App"
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
           app-name: ${{ secrets.FRONTEND_AZURE_APPSERVICE_NAME }}
-          publish-profile: ${{ secrets.FRONTEND_AZURE_PUBLISH_PROFILE }}
+          slot-name: "Production"
+          package: ./frontend-build/
+
+      # - name: Deploy to production
+      #   uses: azure/webapps-deploy@v2
+      #   with:
+      #     package: ./frontend-build
+      #     app-name: ${{ secrets.FRONTEND_AZURE_APPSERVICE_NAME }}
+      #     publish-profile: ${{ secrets.FRONTEND_AZURE_PUBLISH_PROFILE }}
