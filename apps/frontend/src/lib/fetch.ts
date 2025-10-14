@@ -25,7 +25,8 @@ export const fetchBackend = async (
     },
     credentials: "include", // Include cookies for authentication
   });
-  console.log("Response:", response);
+
+  console.debug("Response:", response);
 
   return response;
 };

@@ -1,6 +1,5 @@
-// src/components/ProtectedRoute.tsx
-import { Navigate } from "react-router-dom";
 import Cookies from "js-cookie";
+import { Navigate } from "react-router-dom";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;

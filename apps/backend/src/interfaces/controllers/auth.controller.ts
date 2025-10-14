@@ -1,10 +1,11 @@
-import { nodeEnv } from "src/constants";
-import type { Response } from "express";
-import { SERVICES } from "src/di-tokens";
-import { ApiTags } from "@nestjs/swagger";
-import { User } from "src/domain/user/user";
-import type { loginDto } from "../dtos/login.dto";
+import { AuthGuard, type RequestWithCookies } from "../guards/auth.guard";
 import type { IAuthService } from "src/application/ports/auth.port";
+import type { loginDto } from "../dtos/login.dto";
+import { User } from "src/domain/user/user";
+import { ApiTags } from "@nestjs/swagger";
+import { SERVICES } from "src/di-tokens";
+import type { Response } from "express";
+import { nodeEnv } from "src/constants";
 import {
   HttpException,
   HttpStatus,
@@ -15,6 +16,9 @@ import {
   Body,
   Post,
   Res,
+  Req,
+  Get,
+  UseGuards,
 } from "@nestjs/common";
 
 @ApiTags("auth")
@@ -34,7 +38,7 @@ export class AuthController {
   public async login(
     @Body() dto: loginDto,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<User> {
+  ): Promise<{ accessToken: string }> {
     if (!dto || !dto.email || !dto.password) {
       this.logger.warn("Login attempt with missing email or password");
       throw new HttpException("Email and password are required", HttpStatus.UNAUTHORIZED);
@@ -53,11 +57,31 @@ export class AuthController {
         sameSite: "lax",
         maxAge: 3600000, // 1 hour
       });
-      return response.user;
+      return { accessToken: response.accessToken };
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       this.logger.error(`Login error: ${message}`);
       throw new HttpException(message, HttpStatus.UNAUTHORIZED);
     }
+  }
+
+  @Get("me")
+  @UseGuards(AuthGuard)
+  public async me(@Req() req: RequestWithCookies): Promise<User> {
+    const claims = req.authClaims;
+    if (!claims || !claims.sub) {
+      this.logger.warn("User not authenticated! No claims found in me()");
+      throw new HttpException("Unauthorized", HttpStatus.UNAUTHORIZED);
+    }
+
+    console.log("Auth claims in me():", claims);
+    const userId = claims.sub.toString();
+    const user = await this.authService.getUser(userId);
+    if (!user) {
+      this.logger.warn("User not found in me():" + userId);
+      throw new HttpException("Unauthorized", HttpStatus.UNAUTHORIZED);
+    }
+
+    return user;
   }
 }

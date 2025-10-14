@@ -3,7 +3,17 @@ import { jwtSecret } from "../../constants";
 import { JwtService } from "@nestjs/jwt";
 import { Request } from "express";
 
-type RequestWithCookies = Request & { cookies?: { ACCESSTOKEN?: string } };
+interface jwtPayload {
+  sub: string | number;
+  email: string;
+  first: string;
+  last: string;
+}
+
+export type RequestWithCookies = Request & {
+  cookies?: { ACCESSTOKEN?: string };
+  authClaims?: jwtPayload;
+};
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -20,7 +30,7 @@ export class AuthGuard implements CanActivate {
         secret: jwtSecret,
       });
 
-      request["user"] = payload;
+      request["authClaims"] = payload;
     } catch {
       throw new UnauthorizedException();
     }
