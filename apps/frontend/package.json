@@ -6,7 +6,8 @@
     "react",
     "vite",
     "tailwind",
-    "shadcn"
+    "shadcn",
+    "authentication"
   ],
   "version": "0.2.0",
   "author": "Daniël van Ginneken",
