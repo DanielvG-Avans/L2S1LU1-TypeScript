@@ -1,16 +1,13 @@
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthLayout } from "./layouts/AuthLayout";
 import { createRoot } from "react-dom/client";
 import { Layout } from "./layouts/Layout";
+import ProfilePage from "./pages/Profile";
 import LoginPage from "./pages/Login";
 import HomePage from "./pages/Home";
 import { StrictMode } from "react";
 import "./index.css";
-import {
-  createBrowserRouter,
-  RouterProvider,
-  Navigate,
-} from "react-router-dom";
 
 const router = createBrowserRouter([
   {
@@ -22,6 +19,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <HomePage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/profile",
+        element: (
+          <ProtectedRoute>
+            <ProfilePage />
           </ProtectedRoute>
         ),
       },
@@ -39,5 +44,5 @@ const router = createBrowserRouter([
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <RouterProvider router={router} />
-  </StrictMode>
+  </StrictMode>,
 );

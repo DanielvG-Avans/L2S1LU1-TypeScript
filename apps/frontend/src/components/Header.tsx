@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import keuzekompasLogo from "../assets/keuzekompas.svg";
 import type { User } from "../types/User";
+import { Link } from "react-router-dom";
 
 type HeaderProps = {
-  user: User;
+  user: User | undefined;
   onLogout?: () => void;
 };
 
@@ -31,8 +32,8 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left: Logo */}
-          <a
-            href="/"
+          <Link
+            to="/"
             className="flex items-center gap-3 text-gray-900 no-underline"
             aria-label="Homepage"
           >
@@ -40,18 +41,18 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
               <img src={keuzekompasLogo} alt="Keuzekompas Logo" className="h-8 w-auto" />
             )}
             <span className="font-semibold text-lg">Keuzekompas</span>
-          </a>
+          </Link>
 
           {/* Center: Nav (desktop) */}
           <nav className="hidden md:flex items-center space-x-6">
             {navItems.map((item) => (
-              <a
+              <Link
                 key={item.title}
-                href={item.href}
+                to={item.href}
                 className="text-gray-600 hover:text-gray-900 transition-colors"
               >
                 {item.title}
-              </a>
+              </Link>
             ))}
           </nav>
 
@@ -74,12 +75,12 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
 
                   {profileOpen && (
                     <div className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg py-1 z-10">
-                      <a
-                        href="/profile"
+                      <Link
+                        to="/profile"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                       >
                         Profile
-                      </a>
+                      </Link>
                       <button
                         onClick={() => {
                           setProfileOpen(false);
@@ -129,13 +130,13 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
         <div className="md:hidden border-t">
           <div className="px-4 pt-4 pb-3 space-y-2">
             {navItems.map((item) => (
-              <a
+              <Link
                 key={item.title}
-                href={item.href}
+                to={item.href}
                 className="block px-2 py-2 text-gray-700 rounded hover:bg-gray-50"
               >
                 {item.title}
-              </a>
+              </Link>
             ))}
 
             {user ? (
@@ -146,9 +147,9 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
                   </div>
                   <div>
                     <div className="text-sm font-medium text-gray-900">{user?.firstName}</div>
-                    <a href="/profile" className="text-xs text-gray-500 hover:underline">
+                    <Link to="/profile" className="text-xs text-gray-500 hover:underline">
                       View profile
-                    </a>
+                    </Link>
                   </div>
                 </div>
                 <div className="px-2 pb-3">
