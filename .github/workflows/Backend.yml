@@ -15,6 +15,7 @@ on:
 
 jobs:
   build-and-test:
+    name: Build & Test
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -47,6 +48,7 @@ jobs:
           path: apps/backend/*
 
   deploy:
+    name: Deploy to Azure
     needs: build-and-test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
