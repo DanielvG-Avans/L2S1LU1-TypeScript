@@ -38,12 +38,6 @@ jobs:
       - name: Build application
         run: npm run build
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-dist
-          path: dist
-
   deploy:
     name: Deploy to Azure
     needs: build
@@ -56,12 +50,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-dist
-          path: dist
 
       - name: Deploy to Azure Static Web App
         uses: Azure/static-web-apps-deploy@v1
