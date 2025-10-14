@@ -5,6 +5,14 @@
   "author": "Daniël van Ginneken",
   "private": true,
   "license": "MIT",
+  "keywords": [
+    "nestjs",
+    "onion",
+    "typescript",
+    "backend",
+    "api",
+    "nestjs-framework"
+  ],
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",

@@ -5,7 +5,8 @@
   "keywords": [
     "react",
     "vite",
-    "tailwind"
+    "tailwind",
+    "shadcn"
   ],
   "version": "0.2.0",
   "author": "Daniël van Ginneken",
