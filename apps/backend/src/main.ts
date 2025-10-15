@@ -47,9 +47,8 @@ void (async () => {
       const config = new DocumentBuilder()
         .setTitle("API Documentation")
         .setDescription("API documentation for Avans Keuzekompas Backend")
+        .addCookieAuth("ACCESSTOKEN")
         .setVersion("0.1.0")
-        .addCookieAuth()
-        .addBearerAuth()
         .build();
       SwaggerModule.setup("api/docs", app, SwaggerModule.createDocument(app, config));
       logger.log("Swagger documentation available at /api/docs");
