@@ -3,6 +3,7 @@ import { JwtModule } from "@nestjs/jwt";
 import { jwtSecret } from "../constants";
 import { AuthService } from "./services/auth.service";
 import { Module as NestModule } from "@nestjs/common";
+import { ModuleService } from "./services/module.service";
 import { InfrastructureModule } from "../infrastructure/infrastructure.module";
 
 @NestModule({
@@ -14,7 +15,11 @@ import { InfrastructureModule } from "../infrastructure/infrastructure.module";
       signOptions: { expiresIn: "1h" },
     }),
   ],
-  providers: [{ provide: SERVICES.AUTH, useClass: AuthService }],
-  exports: [SERVICES.AUTH],
+  providers: [
+    { provide: SERVICES.AUTH, useClass: AuthService },
+    { provide: SERVICES.USER, useClass: ModuleService },
+    { provide: SERVICES.MODULE, useClass: ModuleService },
+  ],
+  exports: [SERVICES.AUTH, SERVICES.MODULE, SERVICES.USER],
 })
 export class ApplicationModule {}
