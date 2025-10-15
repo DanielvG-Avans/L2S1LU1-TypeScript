@@ -7,4 +7,6 @@ export const REPOSITORIES = {
 
 export const SERVICES = {
   AUTH: Symbol("SERVICES.AUTH"),
+  USER: Symbol("SERVICES.USER"),
+  MODULE: Symbol("SERVICES.MODULE"),
 } as const;
