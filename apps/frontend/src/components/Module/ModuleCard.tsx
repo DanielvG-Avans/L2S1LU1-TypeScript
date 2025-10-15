@@ -1,7 +1,7 @@
-import { cn } from "../lib/utils";
-import { Button } from "./ui/button";
+import { cn } from "@/lib/utils";
 import { MapPin, Info } from "lucide-react";
-import type { Module } from "../types/Module";
+import type { Module } from "@/types/Module";
+import { Button } from "@/components/ui/button";
 
 interface ModuleCardProps {
   module: Module;
