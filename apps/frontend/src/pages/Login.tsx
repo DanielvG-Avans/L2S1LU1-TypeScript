@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { fetchBackend } from "../lib/fetch";
+import { fetchBackend } from "@/lib/fetch";
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {

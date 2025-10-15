@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
-import keuzekompasLogo from "../assets/keuzekompas.svg";
-import type { User } from "../types/User";
 import { Link } from "react-router-dom";
+import type { User } from "@/types/User";
+import keuzekompasLogo from "@/assets/keuzekompas.svg";
+import React, { useEffect, useRef, useState } from "react";
 
 type HeaderProps = {
   user: User | undefined;
