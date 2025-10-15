@@ -1,3 +1,4 @@
+import path from "path";
 import svgr from "vite-plugin-svgr";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
@@ -15,6 +16,12 @@ export default defineConfig(({ mode }) => {
     // Base & root
     root: process.cwd(),
     base: env.VITE_BASE ?? "/",
+
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
+      },
+    },
 
     // Plugins: fast React, path aliases, SVG as React components, PWA, linting, image tooling, compression, legacy support
     plugins: [
