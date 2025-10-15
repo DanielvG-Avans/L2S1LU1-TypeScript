@@ -20,6 +20,7 @@ export class ModuleService implements IModuleService {
       this.logger.warn("No modules found");
       return [];
     }
+
     return modules;
   }
 
@@ -27,8 +28,9 @@ export class ModuleService implements IModuleService {
     const module = await this.moduleRepo.findById(id);
     if (!module) {
       this.logger.warn(`Module with id ${id} not found`);
-      return undefined;
+      throw new Error(`Module with id ${id} not found`);
     }
+
     return module;
   }
 }
