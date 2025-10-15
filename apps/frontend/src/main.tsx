@@ -7,7 +7,7 @@ import ProfilePage from "./pages/Profile";
 import LoginPage from "./pages/Login";
 import HomePage from "./pages/Home";
 import { StrictMode } from "react";
-import "./index.css";
+import "./main.css";
 
 const router = createBrowserRouter([
   {
