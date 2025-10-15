@@ -1,10 +1,9 @@
 import bcrypt from "bcrypt";
 import { JwtService } from "@nestjs/jwt";
-import { User } from "src/domain/user/user";
 import { REPOSITORIES } from "../../di-tokens";
+import { type IUserService } from "../ports/user.port";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { loginResponse, loginRequest, IAuthService } from "../ports/auth.port";
-import type { IUserRepository } from "../../domain/user/user.repository.interface";
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -12,7 +11,7 @@ export class AuthService implements IAuthService {
 
   constructor(
     @Inject(REPOSITORIES.USER)
-    private readonly userRepo: IUserRepository,
+    private readonly userService: IUserService,
     private jwtService: JwtService,
   ) {}
 
@@ -21,9 +20,7 @@ export class AuthService implements IAuthService {
       throw new Error("Email and password are required");
     }
 
-    const user = await this.userRepo
-      .find()
-      .then((users) => users.find((u) => u.email === data.email));
+    const user = await this.userService.getUserById(data.email);
     if (!user) {
       throw new Error("Invalid email or password");
     }
@@ -40,16 +37,5 @@ export class AuthService implements IAuthService {
       last: user.lastName,
     });
     return { accessToken };
-  }
-
-  public async getUser(id: string): Promise<User | null> {
-    if (!id) {
-      return null;
-    }
-
-    const user =
-      (await this.userRepo.find().then((users) => users.find((u) => u.id === id))) || null;
-
-    return user;
   }
 }

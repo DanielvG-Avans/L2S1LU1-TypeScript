@@ -1,10 +1,11 @@
 import { AuthGuard, type RequestWithCookies } from "../guards/auth.guard";
-import type { IAuthService } from "src/application/ports/auth.port";
-import type { loginDto } from "../dtos/login.dto";
+import { type IAuthService } from "src/application/ports/auth.port";
+import { type IUserService } from "src/application/ports/user.port";
+import { type loginDto } from "../dtos/login.dto";
 import { User } from "src/domain/user/user";
 import { ApiTags } from "@nestjs/swagger";
 import { SERVICES } from "src/di-tokens";
-import type { Response } from "express";
+import { type Response } from "express";
 import { nodeEnv } from "src/constants";
 import {
   HttpException,
@@ -29,6 +30,8 @@ export class AuthController {
   constructor(
     @Inject(SERVICES.AUTH)
     private readonly authService: IAuthService,
+    @Inject(SERVICES.USER)
+    private readonly userService: IUserService,
   ) {
     this.logger = new Logger("AuthController");
   }
@@ -74,9 +77,8 @@ export class AuthController {
       throw new HttpException("Unauthorized", HttpStatus.UNAUTHORIZED);
     }
 
-    console.log("Auth claims in me():", claims);
     const userId = claims.sub.toString();
-    const user = await this.authService.getUser(userId);
+    const user = await this.userService.getUserById(userId);
     if (!user) {
       this.logger.warn("User not found in me():" + userId);
       throw new HttpException("Unauthorized", HttpStatus.UNAUTHORIZED);
