@@ -10,7 +10,7 @@ export class ModuleService implements IModuleService {
   private readonly logger = new Logger(ModuleService.name);
 
   constructor(
-    @Inject(REPOSITORIES.USER)
+    @Inject(REPOSITORIES.MODULE)
     private readonly moduleRepo: IModuleRepository,
   ) {}
 

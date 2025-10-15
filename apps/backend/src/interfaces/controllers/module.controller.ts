@@ -23,7 +23,7 @@ export class ModuleController {
   private readonly logger: Logger = new Logger(ModuleController.name);
 
   constructor(
-    @Inject(SERVICES.AUTH)
+    @Inject(SERVICES.MODULE)
     private readonly moduleService: IModuleService,
   ) {}
 
