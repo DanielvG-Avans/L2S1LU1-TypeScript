@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { JwtService } from "@nestjs/jwt";
-import { REPOSITORIES } from "../../di-tokens";
+import { SERVICES } from "../../di-tokens";
 import { type IUserService } from "../ports/user.port";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { loginResponse, loginRequest, IAuthService } from "../ports/auth.port";
@@ -10,7 +10,7 @@ export class AuthService implements IAuthService {
   private readonly logger = new Logger(AuthService.name);
 
   constructor(
-    @Inject(REPOSITORIES.USER)
+    @Inject(SERVICES.USER)
     private readonly userService: IUserService,
     private jwtService: JwtService,
   ) {}
@@ -20,7 +20,7 @@ export class AuthService implements IAuthService {
       throw new Error("Email and password are required");
     }
 
-    const user = await this.userService.getUserById(data.email);
+    const user = await this.userService.getUserByEmail(data.email);
     if (!user) {
       throw new Error("Invalid email or password");
     }
