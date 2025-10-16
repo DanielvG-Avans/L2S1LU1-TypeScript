@@ -42,30 +42,20 @@ export class AuthController {
     @Body() dto: loginDto,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ accessToken: string }> {
-    if (!dto || !dto.email || !dto.password) {
-      this.logger.warn("Login attempt with missing email or password");
-      throw new UnauthorizedException("Email and password are required");
+    const result = await this.authService.login(dto);
+
+    if (!result.ok) {
+      this.logger.warn(`Login failed: ${result.error.code} - ${result.error.message}`);
+      throw new UnauthorizedException(result.error.message || "Authentication failed");
     }
 
-    try {
-      const response = await this.authService.login(dto);
-      if (!response) {
-        this.logger.warn("Login attempt with invalid email or password");
-        throw new UnauthorizedException("Invalid email or password");
-      }
-
-      res.cookie("ACCESSTOKEN", response.accessToken, {
-        httpOnly: nodeEnv === "production",
-        secure: nodeEnv === "production",
-        sameSite: "lax",
-        maxAge: 3600000, // 1 hour
-      });
-      return { accessToken: response.accessToken };
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
-      this.logger.error(`Login error: ${message}`);
-      throw new UnauthorizedException(message);
-    }
+    res.cookie("ACCESSTOKEN", result.data.accessToken, {
+      httpOnly: nodeEnv === "production",
+      secure: nodeEnv === "production",
+      sameSite: "lax",
+      maxAge: 3600000, // 1 hour
+    });
+    return { accessToken: result.data.accessToken };
   }
 
   @Get("me")
@@ -78,12 +68,12 @@ export class AuthController {
     }
 
     const userId = claims.sub.toString();
-    const user = await this.userService.getUserById(userId);
-    if (!user) {
-      this.logger.warn("User not found in me():" + userId);
+    const userResult = await this.userService.getUserById(userId);
+    if (!userResult.ok) {
+      this.logger.warn(`User not found in me(): ${userId}`);
       throw new UnauthorizedException("Unauthorized");
     }
 
-    return user;
+    return userResult.data;
   }
 }

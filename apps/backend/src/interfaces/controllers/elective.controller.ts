@@ -39,24 +39,24 @@ export class ElectiveController {
   @HttpCode(HttpStatus.OK)
   public async getAll(): Promise<Elective[]> {
     const result = await this.electiveService.getAllElectives();
-    if (!result || result.length === 0) {
-      this.logger.warn("No electives found");
-      throw new NotFoundException("No electives found");
+    if (!result.ok) {
+      this.logger.warn(`Failed to get electives: ${result.error.code}`);
+      throw new NotFoundException(result.error.message || "No electives found");
     }
 
-    return result;
+    return result.data;
   }
 
   @Get(":id")
   @HttpCode(HttpStatus.OK)
   public async getElectiveById(@Param("id") id: string): Promise<Elective> {
     const result = await this.electiveService.getElectiveById(id);
-    if (!result) {
+    if (!result.ok) {
       this.logger.warn(`Elective not found: ${id}`);
-      throw new NotFoundException("Elective not found");
+      throw new NotFoundException(result.error.message || "Elective not found");
     }
 
-    return result;
+    return result.data;
   }
 
   @Get("favorites")
@@ -68,13 +68,13 @@ export class ElectiveController {
       throw new UnauthorizedException("User not authenticated");
     }
 
-    const favorites = await this.userService.getUserFavorites(userId.toString());
-    if (!favorites || favorites.length === 0) {
-      this.logger.warn(`No favorite electives found for user: ${userId}`);
-      throw new NotFoundException("No favorite electives found");
+    const favoritesResult = await this.userService.getUserFavorites(userId.toString());
+    if (!favoritesResult.ok) {
+      this.logger.warn(`Failed to get favorites for user ${userId}: ${favoritesResult.error.code}`);
+      throw new NotFoundException(favoritesResult.error.message || "No favorite electives found");
     }
 
-    return favorites;
+    return favoritesResult.data;
   }
 
   @Get("favorites/:electiveId")
@@ -89,10 +89,10 @@ export class ElectiveController {
       throw new UnauthorizedException("User not authenticated");
     }
 
-    const favorite = await this.userService.isElectiveFavorite(userId.toString(), id);
-    if (!favorite) {
-      this.logger.warn(`Favorite elective not found: ${id}`);
-      throw new NotFoundException("Favorite elective not found");
+    const favoriteResult = await this.userService.isElectiveFavorite(userId.toString(), id);
+    if (!favoriteResult.ok) {
+      this.logger.warn(`Elective ${id} is not a favorite: ${favoriteResult.error.code}`);
+      throw new NotFoundException(favoriteResult.error.message || "Favorite elective not found");
     }
 
     return;
@@ -114,11 +114,11 @@ export class ElectiveController {
       userId.toString(),
       favoriteDto.electiveId,
     );
-    if (!addResult) {
+    if (!addResult.ok) {
       this.logger.warn(
-        `Failed to add elective ${favoriteDto.electiveId} to favorites for user: ${userId}`,
+        `Failed to add elective ${favoriteDto.electiveId} to favorites for user ${userId}: ${addResult.error.code}`,
       );
-      throw new NotFoundException("Failed to add favorite elective");
+      throw new NotFoundException(addResult.error.message || "Failed to add favorite elective");
     }
 
     return;
@@ -140,11 +140,13 @@ export class ElectiveController {
       userId.toString(),
       favoriteDto.electiveId,
     );
-    if (!removeResult) {
+    if (!removeResult.ok) {
       this.logger.warn(
-        `Failed to remove elective ${favoriteDto.electiveId} from favorites for user: ${userId}`,
+        `Failed to remove elective ${favoriteDto.electiveId} from favorites for user ${userId}: ${removeResult.error.code}`,
       );
-      throw new NotFoundException("Failed to remove favorite elective");
+      throw new NotFoundException(
+        removeResult.error.message || "Failed to remove favorite elective",
+      );
     }
 
     return;

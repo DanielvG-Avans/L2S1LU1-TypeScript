@@ -1,3 +1,5 @@
+import { Result } from "../../domain/result";
+
 //* Login
 export type loginRequest = {
   email: string;
@@ -10,5 +12,5 @@ export type loginResponse = {
 
 //* Auth Service Interface
 export interface IAuthService {
-  login(req: loginRequest): Promise<loginResponse>;
+  login(req: loginRequest): Promise<Result<loginResponse>>;
 }
