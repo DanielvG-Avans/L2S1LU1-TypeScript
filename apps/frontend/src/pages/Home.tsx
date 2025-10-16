@@ -68,10 +68,18 @@ export default function ModulePage(): React.ReactNode {
     }
 
     // 🎯 Filters
-    Object.entries(filters).forEach(([key, value]) => {
+    (Object.entries(filters) as [keyof typeof filters, string][]).forEach(([key, value]) => {
       if (value !== "all") {
-        // @ts-ignore dynamic property filtering
-        result = result.filter((m) => String(m[key]).toLowerCase() === value.toLowerCase());
+        const moduleKey = key as keyof Module;
+        result = result.filter((m) => {
+          const prop = m[moduleKey];
+          if (prop === undefined || prop === null) return false;
+          if (Array.isArray(prop)) {
+            // If the module property is an array, check if any element matches the filter value
+            return prop.some((p) => String(p).toLowerCase() === value.toLowerCase());
+          }
+          return String(prop).toLowerCase() === value.toLowerCase();
+        });
       }
     });
 
