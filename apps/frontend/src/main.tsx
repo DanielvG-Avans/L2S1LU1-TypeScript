@@ -1,5 +1,6 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import ModuleDetailPage from "./pages/ModuleDetails";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { createRoot } from "react-dom/client";
 import { Layout } from "@/layouts/Layout";
@@ -36,7 +37,7 @@ const router = createBrowserRouter([
         path: "/modules/:moduleId",
         element: (
           <ProtectedRoute>
-            <HomePage />
+            <ModuleDetailPage />
           </ProtectedRoute>
         ),
       },

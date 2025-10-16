@@ -33,6 +33,7 @@ export class ModuleController {
   public async getAll(): Promise<Module[]> {
     const result = await this.moduleService.getAllModules();
     if (!result || result.length === 0) {
+      this.logger.warn("No modules found");
       throw new NotFoundException("No modules found");
     }
 
@@ -44,6 +45,7 @@ export class ModuleController {
   public async getModuleById(@Param("id") id: string): Promise<Module> {
     const result = await this.moduleService.getModuleById(id);
     if (!result) {
+      this.logger.warn(`Module not found: ${id}`);
       throw new NotFoundException("Module not found");
     }
 

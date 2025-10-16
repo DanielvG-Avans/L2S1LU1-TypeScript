@@ -18,7 +18,7 @@ export class ModuleService implements IModuleService {
     const modules = await this.moduleRepo.find();
     if (!modules || modules.length === 0) {
       this.logger.warn("No modules found");
-      return [];
+      throw new Error(`No modules found`);
     }
 
     return modules;
