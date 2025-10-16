@@ -24,19 +24,13 @@ export class UserService implements IUserService {
   }
 
   public async getUserByEmail(email: string): Promise<User> {
-    const user = await this.userRepo.find();
+    const user = await this.userRepo.findByEmail(email);
     if (!user) {
       this.logger.warn(`User with email ${email} not found`);
       throw new Error("User not found");
     }
 
-    const userByEmail = user.find((u) => u.email === email);
-    if (!userByEmail) {
-      this.logger.warn(`User with email ${email} not found`);
-      throw new Error("User not found");
-    }
-
-    return userByEmail;
+    return user;
   }
 
   public async getUserFavorites(userId: string): Promise<string[]> {
