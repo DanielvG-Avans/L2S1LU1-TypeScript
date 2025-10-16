@@ -1,4 +1,4 @@
-export interface Module {
+export interface Elective {
   id?: string;
   code: string;
   name: string;

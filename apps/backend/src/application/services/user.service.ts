@@ -1,8 +1,10 @@
-import { REPOSITORIES } from "src/di-tokens";
-import { IUserService } from "../ports/user.port";
-import { Injectable, Inject, Logger } from "@nestjs/common";
-import { type IUserRepository } from "src/domain/user/user.repository.interface";
 import { User } from "src/domain/user/user";
+import { IUserService } from "../ports/user.port";
+import { REPOSITORIES, SERVICES } from "../../di-tokens";
+import { Elective } from "../../domain/elective/elective";
+import { Injectable, Inject, Logger } from "@nestjs/common";
+import { type IElectiveService } from "../ports/elective.port";
+import { type IUserRepository } from "../../domain/user/user.repository.interface";
 
 //* User Service Implementation
 @Injectable()
@@ -12,6 +14,8 @@ export class UserService implements IUserService {
   constructor(
     @Inject(REPOSITORIES.USER)
     private readonly userRepo: IUserRepository,
+    @Inject(SERVICES.ELECTIVE)
+    private readonly electiveService: IElectiveService,
   ) {}
 
   public async getUserById(id: string): Promise<User> {
@@ -33,7 +37,7 @@ export class UserService implements IUserService {
     return user;
   }
 
-  public async getUserFavorites(userId: string): Promise<string[]> {
+  public async getUserFavorites(userId: string): Promise<Elective[]> {
     const user = await this.userRepo.findById(userId);
     if (!user) {
       this.logger.warn(`User with id ${userId} not found`);
@@ -41,10 +45,19 @@ export class UserService implements IUserService {
     }
 
     const favoriteList = user.favorites || [];
-    return favoriteList;
+    const favorites: Elective[] = [];
+
+    for (const electiveId of favoriteList) {
+      const elective = await this.electiveService.getElectiveById(electiveId);
+      if (elective) {
+        favorites.push(elective);
+      }
+    }
+
+    return favorites;
   }
 
-  public async addModuleToFavorites(userId: string, moduleId: string): Promise<string> {
+  public async addElectiveToFavorites(userId: string, electiveId: string): Promise<boolean> {
     const user = await this.userRepo.findById(userId);
     if (!user) {
       this.logger.warn(`User with id ${userId} not found`);
@@ -52,22 +65,22 @@ export class UserService implements IUserService {
     }
 
     user.favorites = user.favorites || [];
-    user.favorites.push(moduleId);
+    user.favorites.push(electiveId);
     await this.userRepo.update(userId, user);
 
-    return moduleId;
+    return true;
   }
 
-  public async removeModuleFromFavorites(userId: string, moduleId: string): Promise<string> {
+  public async removeElectiveFromFavorites(userId: string, electiveId: string): Promise<boolean> {
     const user = await this.userRepo.findById(userId);
     if (!user) {
       this.logger.warn(`User with id ${userId} not found`);
       throw new Error("User not found");
     }
     user.favorites = user.favorites || [];
-    user.favorites = user.favorites.filter((id) => id !== moduleId);
+    user.favorites = user.favorites.filter((id) => id !== electiveId);
     await this.userRepo.update(userId, user);
 
-    return moduleId;
+    return true;
   }
 }

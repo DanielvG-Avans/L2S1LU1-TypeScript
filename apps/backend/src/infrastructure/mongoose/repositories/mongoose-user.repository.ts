@@ -1,9 +1,9 @@
-import { Model, Types } from "mongoose";
-import { User } from "src/domain/user/user";
-import { IUserRepository } from "src/domain/user/user.repository.interface";
-import { Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
+import { IUserRepository } from "../../../domain/user/user.repository.interface";
 import { UserModel, type UserDocument } from "../schemas/user.schema";
+import { User } from "../../../domain/user/user";
+import { InjectModel } from "@nestjs/mongoose";
+import { Injectable } from "@nestjs/common";
+import { Model, Types } from "mongoose";
 
 @Injectable()
 export class MongooseUserRepository implements IUserRepository {
@@ -34,9 +34,10 @@ export class MongooseUserRepository implements IUserRepository {
 
   public async create(data: User): Promise<User> {
     const created = await this.model.create(data as unknown as UserModel);
-    const doc = (await this.model.findById(created._id).lean().exec()) as UserModel & {
-      _id?: Types.ObjectId | string;
-    };
+    const doc = (await this.model.findById(created._id).lean().exec()) as
+      | (UserModel & { _id?: Types.ObjectId | string })
+      | null;
+    if (!doc) throw new Error("Failed to read created user");
     return this.toDomain(doc);
   }
 
