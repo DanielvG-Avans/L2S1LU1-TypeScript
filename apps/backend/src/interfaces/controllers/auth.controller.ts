@@ -8,7 +8,6 @@ import { SERVICES } from "src/di-tokens";
 import { type Response } from "express";
 import { nodeEnv } from "src/constants";
 import {
-  HttpException,
   HttpStatus,
   Controller,
   HttpCode,
@@ -20,6 +19,7 @@ import {
   Req,
   Get,
   UseGuards,
+  UnauthorizedException,
 } from "@nestjs/common";
 
 @ApiTags("auth")
@@ -44,14 +44,14 @@ export class AuthController {
   ): Promise<{ accessToken: string }> {
     if (!dto || !dto.email || !dto.password) {
       this.logger.warn("Login attempt with missing email or password");
-      throw new HttpException("Email and password are required", HttpStatus.UNAUTHORIZED);
+      throw new UnauthorizedException("Email and password are required");
     }
 
     try {
       const response = await this.authService.login(dto);
       if (!response) {
         this.logger.warn("Login attempt with invalid email or password");
-        throw new HttpException("Invalid email or password", HttpStatus.UNAUTHORIZED);
+        throw new UnauthorizedException("Invalid email or password");
       }
 
       res.cookie("ACCESSTOKEN", response.accessToken, {
@@ -64,7 +64,7 @@ export class AuthController {
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       this.logger.error(`Login error: ${message}`);
-      throw new HttpException(message, HttpStatus.UNAUTHORIZED);
+      throw new UnauthorizedException(message);
     }
   }
 
@@ -74,14 +74,14 @@ export class AuthController {
     const claims = req.authClaims;
     if (!claims || !claims.sub) {
       this.logger.warn("User not authenticated! No claims found in me()");
-      throw new HttpException("Unauthorized", HttpStatus.UNAUTHORIZED);
+      throw new UnauthorizedException("Unauthorized");
     }
 
     const userId = claims.sub.toString();
     const user = await this.userService.getUserById(userId);
     if (!user) {
       this.logger.warn("User not found in me():" + userId);
-      throw new HttpException("Unauthorized", HttpStatus.UNAUTHORIZED);
+      throw new UnauthorizedException("Unauthorized");
     }
 
     return user;

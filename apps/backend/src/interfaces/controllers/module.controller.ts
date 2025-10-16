@@ -13,6 +13,7 @@ import {
   // Post,
   Body,
   Get,
+  NotFoundException,
 } from "@nestjs/common";
 import { Module } from "src/domain/module/module";
 
@@ -32,7 +33,7 @@ export class ModuleController {
   public async getAll(): Promise<Module[]> {
     const result = await this.moduleService.getAllModules();
     if (!result || result.length === 0) {
-      throw new Error("No modules found");
+      throw new NotFoundException("No modules found");
     }
 
     return result;
@@ -43,7 +44,7 @@ export class ModuleController {
   public async getModuleById(@Param("id") id: string): Promise<Module> {
     const result = await this.moduleService.getModuleById(id);
     if (!result) {
-      throw new Error("Module not found");
+      throw new NotFoundException("Module not found");
     }
 
     return result;
