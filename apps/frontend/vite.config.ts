@@ -1,8 +1,6 @@
 import svgr from "vite-plugin-svgr";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
-import legacy from "@vitejs/plugin-legacy";
-import tailwindcss from "@tailwindcss/vite";
 import { imagetools } from "vite-imagetools";
 import { defineConfig, loadEnv } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
@@ -11,18 +9,19 @@ import viteCompression from "vite-plugin-compression";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
 
+  const isProd = mode === "production";
+
   return {
-    // Base & root
     root: process.cwd(),
     base: env.VITE_BASE ?? "/",
 
-    // Plugins: fast React, path aliases, SVG as React components, PWA, linting, image tooling, compression, legacy support
     plugins: [
       svgr(),
       react(),
       imagetools(),
-      tailwindcss(),
       tsconfigPaths(),
+
+      // PWA (registers service worker & manifest)
       VitePWA({
         registerType: "autoUpdate",
         includeAssets: ["favicon.ico", "robots.txt", "apple-touch-icon.png"],
@@ -34,39 +33,30 @@ export default defineConfig(({ mode }) => {
           background_color: "#ffffff",
           theme_color: "#1f2937",
           icons: [
-            {
-              src: "pwa-192x192.png",
-              sizes: "192x192",
-              type: "image/png",
-            },
-            {
-              src: "pwa-512x512.png",
-              sizes: "512x512",
-              type: "image/png",
-            },
+            { src: "pwa-192x192.png", sizes: "192x192", type: "image/png" },
+            { src: "pwa-512x512.png", sizes: "512x512", type: "image/png" },
           ],
         },
       }),
+
+      // Compression: gzip + brotli for production builds
       viteCompression({
         algorithm: "gzip",
         ext: ".gz",
         deleteOriginFile: false,
       }),
-      legacy({
-        targets: ["defaults", "not IE 11"],
+      viteCompression({
+        algorithm: "brotliCompress",
+        ext: ".br",
+        deleteOriginFile: false,
       }),
     ],
 
-    // Resolve & aliases
     resolve: {
-      alias: [
-        { find: "@", replacement: "/src" },
-        { find: "~", replacement: "/src" },
-      ],
+      // Let tsconfigPaths handle aliases; keep common extensions for editor ergonomics
       extensions: [".mjs", ".js", ".ts", ".jsx", ".tsx", ".json"],
     },
 
-    // Dev server optimized for local development
     server: {
       port: Number(env.VITE_PORT) || 3000,
       strictPort: true,
@@ -85,34 +75,38 @@ export default defineConfig(({ mode }) => {
       strictPort: true,
     },
 
-    // Build options tuned for modern apps + SSR support
     build: {
       outDir: "dist",
-      sourcemap: mode !== "production",
+      emptyOutDir: true, // <- add this
+      sourcemap: !isProd,
       target: "es2020",
-      minify: mode === "production" ? "terser" : false,
+      minify: isProd ? "terser" : false,
+      terserOptions: isProd
+        ? {
+            compress: {
+              drop_console: true,
+              drop_debugger: true,
+            },
+            format: {
+              comments: false,
+            },
+          }
+        : undefined,
       rollupOptions: {
         output: {
-          // separate vendor chunk for better caching
-          manualChunks: {
-            vendor: ["react", "react-dom", "react-router-dom"],
+          // smarter vendor splitting: create vendor chunk for node_modules
+          manualChunks(id) {
+            if (!id.includes("node_modules")) return;
+            if (id.match(/react|react-dom/)) return "vendor-react";
+            if (id.match(/lucide-react|some-ui-lib/)) return "vendor-ui";
+            if (id.includes("prop-types")) return "vendor-prop-types";
+            return "vendor";
           },
         },
       },
       chunkSizeWarningLimit: 2000,
     },
 
-    // SSR configuration: ensure key libs are bundled for server render compatibility
-    ssr: {
-      // noExternal can help avoid ESM/CJS interop issues for some deps during SSR
-      noExternal: [
-        "react",
-        "react-dom",
-        // add other packages here that require bundling for SSR
-      ],
-    },
-
-    // Dependency pre-bundling to improve dev start
     optimizeDeps: {
       include: ["react", "react-dom", "react-router-dom", "prop-types"],
       esbuildOptions: {
@@ -120,21 +114,16 @@ export default defineConfig(({ mode }) => {
       },
     },
 
-    // define globals available in app code via import.meta.env or replaced at build time
     define: {
-      __DEV__: mode !== "production",
+      __DEV__: !isProd,
       __APP_ENV__: JSON.stringify(env.APP_ENV ?? mode),
     },
 
-    // CSS: Vite will pick up Tailwind via postcss.config.js / tailwind.config.js automatically.
     css: {
       devSourcemap: true,
-      postcss: {
-        // leave blank — Vite will use user's postcss.config.js if present (recommended for Tailwind)
-      },
+      postcss: {},
     },
 
-    // performance-friendly defaults, tweak as needed
     clearScreen: true,
   };
 });

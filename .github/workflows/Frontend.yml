@@ -20,6 +20,12 @@ jobs:
     defaults:
       run:
         working-directory: apps/frontend
+    env:
+      VITE_BACKEND_URL: ${{ secrets.FRONTEND_VITE_BACKEND_URL }}
+      VITE_BASE: ${{ secrets.FRONTEND_VITE_BASE }}
+      VITE_APP_NAME: ${{ secrets.FRONTEND_VITE_APP_NAME }}
+      VITE_APP_SHORT_NAME: ${{ secrets.FRONTEND_VITE_APP_SHORT_NAME }}
+      APP_ENV: ${{ secrets.FRONTEND_APP_ENV }}
 
     steps:
       - name: Checkout code
