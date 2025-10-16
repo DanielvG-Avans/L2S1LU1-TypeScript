@@ -1,13 +1,13 @@
 import { AuthGuard, type RequestWithCookies } from "../guards/auth.guard";
-import type { IAuthService } from "src/application/ports/auth.port";
-import type { loginDto } from "../dtos/login.dto";
+import { type IAuthService } from "src/application/ports/auth.port";
+import { type IUserService } from "src/application/ports/user.port";
+import { type loginDto } from "../dtos/login.dto";
 import { User } from "src/domain/user/user";
 import { ApiTags } from "@nestjs/swagger";
 import { SERVICES } from "src/di-tokens";
-import type { Response } from "express";
+import { type Response } from "express";
 import { nodeEnv } from "src/constants";
 import {
-  HttpException,
   HttpStatus,
   Controller,
   HttpCode,
@@ -19,6 +19,7 @@ import {
   Req,
   Get,
   UseGuards,
+  UnauthorizedException,
 } from "@nestjs/common";
 
 @ApiTags("auth")
@@ -29,6 +30,8 @@ export class AuthController {
   constructor(
     @Inject(SERVICES.AUTH)
     private readonly authService: IAuthService,
+    @Inject(SERVICES.USER)
+    private readonly userService: IUserService,
   ) {
     this.logger = new Logger("AuthController");
   }
@@ -41,14 +44,14 @@ export class AuthController {
   ): Promise<{ accessToken: string }> {
     if (!dto || !dto.email || !dto.password) {
       this.logger.warn("Login attempt with missing email or password");
-      throw new HttpException("Email and password are required", HttpStatus.UNAUTHORIZED);
+      throw new UnauthorizedException("Email and password are required");
     }
 
     try {
       const response = await this.authService.login(dto);
       if (!response) {
         this.logger.warn("Login attempt with invalid email or password");
-        throw new HttpException("Invalid email or password", HttpStatus.UNAUTHORIZED);
+        throw new UnauthorizedException("Invalid email or password");
       }
 
       res.cookie("ACCESSTOKEN", response.accessToken, {
@@ -61,7 +64,7 @@ export class AuthController {
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       this.logger.error(`Login error: ${message}`);
-      throw new HttpException(message, HttpStatus.UNAUTHORIZED);
+      throw new UnauthorizedException(message);
     }
   }
 
@@ -71,15 +74,14 @@ export class AuthController {
     const claims = req.authClaims;
     if (!claims || !claims.sub) {
       this.logger.warn("User not authenticated! No claims found in me()");
-      throw new HttpException("Unauthorized", HttpStatus.UNAUTHORIZED);
+      throw new UnauthorizedException("Unauthorized");
     }
 
-    console.log("Auth claims in me():", claims);
     const userId = claims.sub.toString();
-    const user = await this.authService.getUser(userId);
+    const user = await this.userService.getUserById(userId);
     if (!user) {
       this.logger.warn("User not found in me():" + userId);
-      throw new HttpException("Unauthorized", HttpStatus.UNAUTHORIZED);
+      throw new UnauthorizedException("Unauthorized");
     }
 
     return user;

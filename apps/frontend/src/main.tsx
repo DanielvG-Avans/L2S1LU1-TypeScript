@@ -1,13 +1,14 @@
-import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
-import ProtectedRoute from "./components/ProtectedRoute";
-import { AuthLayout } from "./layouts/AuthLayout";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { AuthLayout } from "@/layouts/AuthLayout";
 import { createRoot } from "react-dom/client";
-import { Layout } from "./layouts/Layout";
-import ProfilePage from "./pages/Profile";
-import LoginPage from "./pages/Login";
-import HomePage from "./pages/Home";
+import { Layout } from "@/layouts/Layout";
+import ProfilePage from "@/pages/Profile";
+import NotFound from "@/pages/NotFound";
+import LoginPage from "@/pages/Login";
+import HomePage from "@/pages/Home";
 import { StrictMode } from "react";
-import "./index.css";
+import "@/main.css";
 
 const router = createBrowserRouter([
   {
@@ -38,7 +39,7 @@ const router = createBrowserRouter([
     children: [{ path: "/auth/login", element: <LoginPage /> }],
   },
   // fallback for unknown routes
-  { path: "*", element: <Navigate to="/" /> },
+  { path: "*", element: <NotFound /> },
 ]);
 
 createRoot(document.getElementById("root")!).render(

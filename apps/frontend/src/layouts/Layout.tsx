@@ -9,7 +9,7 @@ export const Layout = (): React.ReactNode | null => {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const response = await fetchBackend("/auth/me", {});
+      const response = await fetchBackend("/api/auth/me", {});
       if (response.ok) {
         const data = await response.json();
         setUser(data as User);

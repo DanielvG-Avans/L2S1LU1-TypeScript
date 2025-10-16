@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { fetchBackend } from "../lib/fetch";
+import { fetchBackend } from "@/lib/fetch";
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
@@ -22,7 +22,7 @@ const Login = () => {
     }
 
     try {
-      const loginResponse = await fetchBackend("/auth/login", {
+      const loginResponse = await fetchBackend("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), password }),

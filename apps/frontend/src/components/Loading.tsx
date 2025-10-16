@@ -1,5 +1,5 @@
 import React from "react";
-import keuzekompasLogo from "../assets/keuzekompas.svg";
+import keuzekompasLogo from "@/assets/keuzekompas.svg";
 
 interface LoadingProps {
   isFullScreen?: boolean;
