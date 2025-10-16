@@ -4,6 +4,7 @@ import { AuthLayout } from "@/layouts/AuthLayout";
 import { createRoot } from "react-dom/client";
 import { Layout } from "@/layouts/Layout";
 import ProfilePage from "@/pages/Profile";
+import ModulesPage from "./pages/Modules";
 import NotFound from "@/pages/NotFound";
 import LoginPage from "@/pages/Login";
 import HomePage from "@/pages/Home";
@@ -17,6 +18,22 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
+        element: (
+          <ProtectedRoute>
+            <HomePage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/modules",
+        element: (
+          <ProtectedRoute>
+            <ModulesPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/modules/:moduleId",
         element: (
           <ProtectedRoute>
             <HomePage />
