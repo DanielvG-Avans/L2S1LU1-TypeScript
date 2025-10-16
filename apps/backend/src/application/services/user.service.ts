@@ -83,4 +83,20 @@ export class UserService implements IUserService {
 
     return true;
   }
+
+  public async isElectiveFavorite(userId: string, electiveId: string): Promise<boolean> {
+    const user = await this.userRepo.findById(userId);
+    if (!user) {
+      this.logger.warn(`User with id ${userId} not found`);
+      throw new Error("User not found");
+    }
+
+    const favoriteList = user.favorites || [];
+    if (!favoriteList.includes(electiveId)) {
+      this.logger.warn(`Elective with id ${electiveId} is not a favorite of user ${userId}`);
+      throw new Error("Elective not found");
+    }
+
+    return true;
+  }
 }

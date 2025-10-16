@@ -1,11 +1,13 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import ProviderBadge from "@/components/elective/ProviderBadge";
-import { useEffect, useState, useMemo } from "react";
 import type { Elective } from "@/types/Elective";
+import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { fetchBackend } from "@/lib/fetch";
+import { toast } from "sonner";
 
 const ElectiveDetailPage = () => {
   const { electiveId } = useParams<{ electiveId: string }>();
@@ -15,38 +17,86 @@ const ElectiveDetailPage = () => {
   const [elective, setElective] = useState<Elective | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
 
+  // Fetch elective & favorite status
   useEffect(() => {
-    const loadElective = async () => {
+    if (!electiveId) {
+      setError("No elective ID provided");
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const fetchData = async () => {
       try {
         setLoading(true);
+        const [electiveRes, favoriteRes] = await Promise.all([
+          fetchBackend(`/api/electives/${electiveId}`),
+          fetchBackend(`/api/electives/favorites/${electiveId}`),
+        ]);
 
-        if (!electiveId) {
-          setError("No elective ID provided");
-          setLoading(false);
-          return;
+        if (!electiveRes.ok) throw new Error(`Failed to fetch elective: ${electiveRes.statusText}`);
+
+        const electiveData = (await electiveRes.json()) as Elective | null;
+        if (!electiveData) throw new Error("Elective not found");
+
+        if (!cancelled) {
+          setElective(electiveData);
+          setIsFavorited(favoriteRes.ok);
         }
-
-        const response = await fetchBackend(`/api/electives/${electiveId}`);
-        if (!response.ok) {
-          setError(`Error fetching elective: ${response.statusText}`);
-        }
-
-        const data = (await response.json()) as Elective | null;
-        if (!data) {
-          setError("Elective not found");
-        }
-
-        setElective(data);
       } catch (err: any) {
-        setError("Failed to load elective details. Please try again later.");
+        if (!cancelled) {
+          console.error(err);
+          setError(err.message || "Failed to load elective");
+          toast.error(err.message || "Failed to load elective");
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
-    loadElective();
+
+    fetchData();
+
+    return () => {
+      cancelled = true;
+    };
   }, [electiveId]);
 
+  // Favorite toggle with optimistic UI
+  const toggleFavorite = useCallback(async () => {
+    if (!elective || favoriteLoading) return;
+
+    const prevFavorited = isFavorited;
+    setIsFavorited(!prevFavorited);
+    setFavoriteLoading(true);
+
+    try {
+      const response = await fetchBackend(`/api/electives/favorites`, {
+        body: JSON.stringify({ electiveId: elective.id }),
+        method: prevFavorited ? "DELETE" : "POST",
+      });
+
+      if (!response.ok) throw new Error("Failed to update favorite status");
+
+      toast.success(
+        !prevFavorited ? "Added to favorites!" : "Removed from favorites!",
+        { style: { background: "#52c41a", color: "white" } }, // green for success
+      );
+    } catch (err) {
+      console.error(err);
+      toast.error("Could not update favorites. Try again later.", {
+        style: { background: "#ff4d4f", color: "white" }, // red for error
+      });
+      setIsFavorited(prevFavorited);
+    } finally {
+      setFavoriteLoading(false);
+    }
+  }, [elective, isFavorited, favoriteLoading]);
+
+  // Meta info
   const meta = useMemo(() => {
     if (!elective) return [];
     return [
@@ -76,6 +126,9 @@ const ElectiveDetailPage = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10 space-y-8">
+      {/* Toast container */}
+      <Toaster />
+
       {/* Hero Section */}
       <div className="relative rounded-3xl overflow-hidden shadow-lg group">
         <img
@@ -84,7 +137,6 @@ const ElectiveDetailPage = () => {
           className="w-full h-64 sm:h-96 object-cover transform group-hover:scale-[1.02] transition-transform duration-500"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/60 to-transparent backdrop-blur-[2px]" />
-
         <div className="absolute bottom-8 left-8 sm:left-10 text-white drop-shadow-lg space-y-1">
           <h1 className="text-3xl sm:text-4xl font-bold leading-tight">{elective.name}</h1>
           <p className="text-sm sm:text-base opacity-90">
@@ -128,7 +180,18 @@ const ElectiveDetailPage = () => {
       </Card>
 
       {/* Footer Actions */}
-      <div className="flex justify-end pt-4">
+      <div className="flex justify-end pt-4 gap-2">
+        <Button
+          variant={isFavorited ? "destructive" : "outline"}
+          onClick={toggleFavorite}
+          disabled={favoriteLoading}
+          className={`rounded-xl border-border/50 hover:border-primary/50 transition-all ${
+            favoriteLoading ? "animate-pulse" : ""
+          }`}
+        >
+          {isFavorited ? "★ Favorited" : "☆ Add to Favorites"}
+        </Button>
+
         <Button
           variant="outline"
           onClick={() => navigate(location.state?.from ?? "/electives")}

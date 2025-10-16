@@ -5,7 +5,10 @@ import { Elective } from "../../domain/elective/elective";
 export interface IUserService {
   getUserById(id: string): Promise<User>;
   getUserByEmail(email: string): Promise<User>;
+
   getUserFavorites(userId: string): Promise<Elective[]>;
   addElectiveToFavorites(userId: string, electiveId: string): Promise<boolean>;
   removeElectiveFromFavorites(userId: string, electiveId: string): Promise<boolean>;
+
+  isElectiveFavorite(userId: string, electiveId: string): Promise<boolean>;
 }

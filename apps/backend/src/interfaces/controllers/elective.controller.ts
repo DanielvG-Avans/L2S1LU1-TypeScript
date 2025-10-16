@@ -77,6 +77,27 @@ export class ElectiveController {
     return favorites;
   }
 
+  @Get("favorites/:electiveId")
+  @HttpCode(HttpStatus.OK)
+  public async checkIfElectiveIsFavorite(
+    @Param("electiveId") id: string,
+    @Req() req: RequestWithCookies,
+  ): Promise<void> {
+    const userId = req.authClaims?.sub;
+    if (!userId) {
+      this.logger.warn("Unauthorized access attempt to get favorite electives");
+      throw new UnauthorizedException("User not authenticated");
+    }
+
+    const favorite = await this.userService.isElectiveFavorite(userId.toString(), id);
+    if (!favorite) {
+      this.logger.warn(`Favorite elective not found: ${id}`);
+      throw new NotFoundException("Favorite elective not found");
+    }
+
+    return;
+  }
+
   @Post("favorites")
   @HttpCode(HttpStatus.CREATED)
   public async addFavoriteElective(
