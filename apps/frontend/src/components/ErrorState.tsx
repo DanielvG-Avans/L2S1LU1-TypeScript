@@ -18,8 +18,8 @@ export default function ErrorState({
   itemsCount,
   loadingTitle = "Laden…",
   loadingMessage = "Even geduld aub",
-  emptyTitle = "Geen modules gevonden",
-  emptyMessage = "Er zijn nog geen modules beschikbaar.",
+  emptyTitle = "Geen electives gevonden",
+  emptyMessage = "Er zijn nog geen electives beschikbaar.",
   className = "",
   children,
 }: ErrorStateProps) {

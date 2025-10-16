@@ -10,7 +10,7 @@ type HeaderProps = {
 
 const navItems = [
   { title: "Home", href: "/" },
-  { title: "Modules", href: "/modules" },
+  { title: "Electives", href: "/electives" },
 ];
 
 const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {

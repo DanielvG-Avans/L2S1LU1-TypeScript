@@ -15,22 +15,22 @@ export class ElectiveService implements IElectiveService {
   ) {}
 
   public async getAllElectives(): Promise<Elective[]> {
-    const modules = await this.electiveRepo.find();
-    if (!modules || modules.length === 0) {
-      this.logger.warn("No modules found");
-      throw new Error(`No modules found`);
+    const electives = await this.electiveRepo.find();
+    if (!electives || electives.length === 0) {
+      this.logger.warn("No electives found");
+      throw new Error(`No electives found`);
     }
 
-    return modules;
+    return electives;
   }
 
   public async getElectiveById(id: string): Promise<Elective | undefined> {
-    const module = await this.electiveRepo.findById(id);
-    if (!module) {
-      this.logger.warn(`Module with id ${id} not found`);
-      throw new Error(`Module with id ${id} not found`);
+    const elective = await this.electiveRepo.findById(id);
+    if (!elective) {
+      this.logger.warn(`Elective with id ${id} not found`);
+      throw new Error(`Elective with id ${id} not found`);
     }
 
-    return module;
+    return elective;
   }
 }

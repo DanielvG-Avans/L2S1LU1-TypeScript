@@ -26,7 +26,7 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "/modules",
+        path: "/electives",
         element: (
           <ProtectedRoute>
             <ElectivesPage />
@@ -34,7 +34,7 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "/modules/:moduleId",
+        path: "/electives/:electiveId",
         element: (
           <ProtectedRoute>
             <ElectiveDetailPage />

@@ -2,74 +2,74 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import ProviderBadge from "@/components/elective/ProviderBadge";
 import { useEffect, useState, useMemo } from "react";
+import type { Elective } from "@/types/Elective";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { Module } from "@/types/Elective";
 import { fetchBackend } from "@/lib/fetch";
 
-const ModuleDetailPage = () => {
-  const { moduleId } = useParams<{ moduleId: string }>();
+const ElectiveDetailPage = () => {
+  const { electiveId } = useParams<{ electiveId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [module, setModule] = useState<Module | null>(null);
+  const [elective, setElective] = useState<Elective | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadModule = async () => {
+    const loadElective = async () => {
       try {
         setLoading(true);
 
-        if (!moduleId) {
-          setError("No module ID provided");
+        if (!electiveId) {
+          setError("No elective ID provided");
           setLoading(false);
           return;
         }
 
-        const response = await fetchBackend(`/api/modules/${moduleId}`);
+        const response = await fetchBackend(`/api/electives/${electiveId}`);
         if (!response.ok) {
-          setError(`Error fetching module: ${response.statusText}`);
+          setError(`Error fetching elective: ${response.statusText}`);
         }
 
-        const data = (await response.json()) as Module;
+        const data = (await response.json()) as Elective | null;
         if (!data) {
-          setError("Module not found");
+          setError("Elective not found");
         }
 
-        setModule(data);
+        setElective(data);
       } catch (err: any) {
-        setError("Failed to load module details. Please try again later.");
+        setError("Failed to load elective details. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
-    loadModule();
-  }, [moduleId]);
+    loadElective();
+  }, [electiveId]);
 
   const meta = useMemo(() => {
-    if (!module) return [];
+    if (!elective) return [];
     return [
-      { key: "period", label: module.period },
-      { key: "duration", label: module.duration },
-      { key: "credits", label: module.credits != null ? `${module.credits} EC` : undefined },
-      { key: "level", label: module.level },
-      { key: "location", label: module.location },
-      { key: "language", label: module.language },
+      { key: "period", label: elective.period },
+      { key: "duration", label: elective.duration },
+      { key: "credits", label: elective.credits != null ? `${elective.credits} EC` : undefined },
+      { key: "level", label: elective.level },
+      { key: "location", label: elective.location },
+      { key: "language", label: elective.language },
     ].filter((m) => m.label) as { key: string; label: string }[];
-  }, [module]);
+  }, [elective]);
 
   if (loading)
     return (
       <div className="flex items-center justify-center min-h-[60vh] text-muted-foreground animate-pulse">
-        Loading module details...
+        Loading elective details...
       </div>
     );
 
-  if (error || !module)
+  if (error || !elective)
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
-        <p className="text-muted-foreground mb-4">{error ?? "Module not found."}</p>
+        <p className="text-muted-foreground mb-4">{error ?? "Elective not found."}</p>
         <Button onClick={() => navigate(-1)}>Go Back</Button>
       </div>
     );
@@ -80,22 +80,22 @@ const ModuleDetailPage = () => {
       <div className="relative rounded-3xl overflow-hidden shadow-lg group">
         <img
           src="/keuzemodule_fallback_16-9.webp"
-          alt={`${module.name} banner`}
+          alt={`${elective.name} banner`}
           className="w-full h-64 sm:h-96 object-cover transform group-hover:scale-[1.02] transition-transform duration-500"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/60 to-transparent backdrop-blur-[2px]" />
 
         <div className="absolute bottom-8 left-8 sm:left-10 text-white drop-shadow-lg space-y-1">
-          <h1 className="text-3xl sm:text-4xl font-bold leading-tight">{module.name}</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold leading-tight">{elective.name}</h1>
           <p className="text-sm sm:text-base opacity-90">
-            {module.code} • {module.language}
+            {elective.code} • {elective.language}
           </p>
         </div>
       </div>
 
       {/* Provider + Meta */}
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <ProviderBadge provider={module.provider} />
+        <ProviderBadge provider={elective.provider} />
         <div className="flex flex-wrap gap-2">
           {meta.map((m) => (
             <Badge
@@ -113,16 +113,16 @@ const ModuleDetailPage = () => {
       <Card className="border border-border/40 bg-gradient-to-b from-background to-muted/10 rounded-3xl shadow-md hover:shadow-lg transition-shadow">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
-            About this Module
+            About this Elective
           </CardTitle>
           <CardDescription className="text-sm text-muted-foreground">
-            Offered by <span className="font-medium text-foreground">{module.provider}</span>
+            Offered by <span className="font-medium text-foreground">{elective.provider}</span>
           </CardDescription>
         </CardHeader>
 
         <CardContent>
           <p className="text-muted-foreground leading-relaxed whitespace-pre-line text-sm sm:text-base">
-            {module.description?.trim() || "No detailed description available for this module."}
+            {elective.description?.trim() || "No detailed description available for this elective."}
           </p>
         </CardContent>
       </Card>
@@ -131,14 +131,14 @@ const ModuleDetailPage = () => {
       <div className="flex justify-end pt-4">
         <Button
           variant="outline"
-          onClick={() => navigate(location.state?.from ?? "/modules")}
+          onClick={() => navigate(location.state?.from ?? "/electives")}
           className="rounded-xl border-border/50 hover:border-primary/50 transition-all"
         >
-          ← Back to Modules
+          ← Back to Electives
         </Button>
       </div>
     </div>
   );
 };
 
-export default ModuleDetailPage;
+export default ElectiveDetailPage;
