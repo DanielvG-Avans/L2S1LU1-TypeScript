@@ -11,6 +11,7 @@ interface Props {
 
 const ModuleCard = ({ module }: Props) => {
   const {
+    id: moduleId,
     name,
     code: moduleCode,
     language,
@@ -53,7 +54,7 @@ const ModuleCard = ({ module }: Props) => {
       role="article"
       tabIndex={0}
       onClick={() => {
-        navigate(`/modules/${encodeURIComponent(moduleCode)}`, {
+        navigate(`/modules/${encodeURIComponent(moduleId as string)}`, {
           replace: false,
           state: { from: window.location.pathname },
         });
@@ -82,7 +83,7 @@ const ModuleCard = ({ module }: Props) => {
           </div>
 
           <div className="shrink-0">
-            <ProviderBadge provider={provider} />
+            <ProviderBadge provider={provider} codeOnly={true} />
           </div>
         </div>
       </CardHeader>
