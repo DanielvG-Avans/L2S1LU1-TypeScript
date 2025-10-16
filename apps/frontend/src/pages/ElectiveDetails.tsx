@@ -1,10 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import ProviderBadge from "@/components/module/ProviderBadge";
+import ProviderBadge from "@/components/elective/ProviderBadge";
 import { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { Module } from "@/types/Module";
+import type { Module } from "@/types/Elective";
 import { fetchBackend } from "@/lib/fetch";
 
 const ModuleDetailPage = () => {

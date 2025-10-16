@@ -1,11 +1,11 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import ModuleDetailPage from "./pages/ModuleDetails";
+import ElectiveDetailPage from "./pages/ElectiveDetails";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { createRoot } from "react-dom/client";
+import ElectivesPage from "./pages/Electives";
 import { Layout } from "@/layouts/Layout";
 import ProfilePage from "@/pages/Profile";
-import ModulesPage from "./pages/Modules";
 import NotFound from "@/pages/NotFound";
 import LoginPage from "@/pages/Login";
 import HomePage from "@/pages/Home";
@@ -29,7 +29,7 @@ const router = createBrowserRouter([
         path: "/modules",
         element: (
           <ProtectedRoute>
-            <ModulesPage />
+            <ElectivesPage />
           </ProtectedRoute>
         ),
       },
@@ -37,7 +37,7 @@ const router = createBrowserRouter([
         path: "/modules/:moduleId",
         element: (
           <ProtectedRoute>
-            <ModuleDetailPage />
+            <ElectiveDetailPage />
           </ProtectedRoute>
         ),
       },

@@ -1,12 +1,10 @@
-"use client";
-
-import ModuleFilter from "@/components/module/ModuleFilter";
+import ElectiveFilter from "@/components/elective/ElectiveFilter";
+import ElectiveCard from "@/components/elective/ElectiveCard";
 import { Search, ArrowUpDown } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import ModuleCard from "@/components/module/ModuleCard";
 import ErrorState from "@/components/ErrorState";
 import { Input } from "@/components/ui/input";
-import type { Module } from "@/types/Module";
+import type { Elective } from "@/types/Elective";
 import { fetchBackend } from "@/lib/fetch";
 import {
   SelectTrigger,
@@ -16,12 +14,12 @@ import {
   Select,
 } from "@/components/ui/select";
 
-export default function ModulePage(): React.ReactNode {
+export default function ElectivePage(): React.ReactNode {
   // UI state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [modules, setModules] = useState<Module[]>([]);
-  const [filtered, setFiltered] = useState<Module[]>([]);
+  const [electives, setElectives] = useState<Elective[]>([]);
+  const [filtered, setFiltered] = useState<Elective[]>([]);
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("name");
 
@@ -35,14 +33,14 @@ export default function ModulePage(): React.ReactNode {
     period: "all",
   });
 
-  // Fetch modules
+  // Fetch electives
   useEffect(() => {
-    const fetchModules = async () => {
+    const fetchElectives = async () => {
       try {
-        const response = await fetchBackend("/api/modules");
+        const response = await fetchBackend("/api/electives");
         if (response.ok) {
-          const data = (await response.json()) as Module[];
-          if (Array.isArray(data)) setModules(data);
+          const data = (await response.json()) as Elective[];
+          if (Array.isArray(data)) setElectives(data);
           else setError("Ongeldige data ontvangen van de server.");
         }
       } catch (err) {
@@ -51,12 +49,12 @@ export default function ModulePage(): React.ReactNode {
         setLoading(false);
       }
     };
-    fetchModules();
+    fetchElectives();
   }, []);
 
   // Filtering & sorting logic
   useEffect(() => {
-    let result = [...modules];
+    let result = [...electives];
 
     // 🔍 Search
     if (query) {
@@ -70,12 +68,12 @@ export default function ModulePage(): React.ReactNode {
     // 🎯 Filters
     (Object.entries(filters) as [keyof typeof filters, string][]).forEach(([key, value]) => {
       if (value !== "all") {
-        const moduleKey = key as keyof Module;
+        const electiveKey = key as keyof Elective;
         result = result.filter((m) => {
-          const prop = m[moduleKey];
+          const prop = m[electiveKey];
           if (prop === undefined || prop === null) return false;
           if (Array.isArray(prop)) {
-            // If the module property is an array, check if any element matches the filter value
+            // If the elective property is an array, check if any element matches the filter value
             return prop.some((p) => String(p).toLowerCase() === value.toLowerCase());
           }
           return String(prop).toLowerCase() === value.toLowerCase();
@@ -91,15 +89,15 @@ export default function ModulePage(): React.ReactNode {
     });
 
     setFiltered(result);
-  }, [modules, query, sortBy, filters]);
+  }, [electives, query, sortBy, filters]);
 
   if (loading) return <ErrorState loading={true} />;
   if (error) return <ErrorState error={error} />;
-  if (modules.length === 0) return <ErrorState itemsCount={0} />;
+  if (electives.length === 0) return <ErrorState itemsCount={0} />;
 
   // Helper for unique dropdown values
-  const uniqueValues = (key: keyof Module): { value: string; label: React.ReactNode }[] => {
-    const values = modules
+  const uniqueValues = (key: keyof Elective): { value: string; label: React.ReactNode }[] => {
+    const values = electives
       .map((m) => {
         const value = m[key];
         if (Array.isArray(value)) return undefined; // ignore arrays like tags
@@ -125,42 +123,42 @@ export default function ModulePage(): React.ReactNode {
       <aside className="md:w-64 w-full md:sticky md:top-4 self-start md:h-[calc(100vh-2rem)] overflow-y-auto bg-card rounded-xl shadow-sm p-4">
         <h2 className="text-lg font-semibold mb-4">Filters</h2>
         <div className="flex flex-col gap-4">
-          <ModuleFilter
+          <ElectiveFilter
             options={uniqueValues("language")}
             onChange={(value) => setFilters((prev) => ({ ...prev, language: value }))}
             defaultValue={filters.language}
             placeholder="Language"
           />
 
-          <ModuleFilter
+          <ElectiveFilter
             options={uniqueValues("provider")}
             onChange={(value) => setFilters((prev) => ({ ...prev, provider: value }))}
             defaultValue={filters.provider}
             placeholder="Provider"
           />
 
-          <ModuleFilter
+          <ElectiveFilter
             options={uniqueValues("level")}
             onChange={(value) => setFilters((prev) => ({ ...prev, level: value }))}
             defaultValue={filters.level}
             placeholder="Level"
           />
 
-          <ModuleFilter
+          <ElectiveFilter
             options={uniqueValues("location")}
             onChange={(value) => setFilters((prev) => ({ ...prev, location: value }))}
             defaultValue={filters.location}
             placeholder="Location"
           />
 
-          <ModuleFilter
+          <ElectiveFilter
             options={uniqueValues("credits")}
             onChange={(value) => setFilters((prev) => ({ ...prev, credits: value }))}
             defaultValue={filters.credits}
             placeholder="Credits"
           />
 
-          <ModuleFilter
+          <ElectiveFilter
             options={uniqueValues("period")}
             onChange={(value) => setFilters((prev) => ({ ...prev, period: value }))}
             defaultValue={filters.period}
@@ -176,7 +174,7 @@ export default function ModulePage(): React.ReactNode {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search modules..."
+              placeholder="Search electives..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="pl-9"
@@ -198,13 +196,13 @@ export default function ModulePage(): React.ReactNode {
         {/* Results Grid */}
         <div className="grid grid-cols-1 gap-6">
           {filtered.map((m) => (
-            <ModuleCard key={m.id} module={m} />
+            <ElectiveCard key={m.id} elective={m} />
           ))}
         </div>
 
         {filtered.length === 0 && (
           <div className="text-center text-muted-foreground mt-20">
-            No modules found matching your search.
+            No electives found matching your search.
           </div>
         )}
       </main>
