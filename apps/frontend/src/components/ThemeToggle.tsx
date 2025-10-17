@@ -54,10 +54,7 @@ export function ThemeToggle() {
           className="w-[120px] bg-background border-border hover:bg-accent hover:text-accent-foreground focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors"
           aria-label="Select theme"
         >
-          <div className="flex items-center gap-2">
-            {theme && themeIcons[theme as keyof typeof themeIcons]}
-            <SelectValue placeholder="Theme" />
-          </div>
+          <SelectValue placeholder="Theme" />
         </SelectTrigger>
         <SelectContent className="bg-popover border-border">
           <SelectItem
