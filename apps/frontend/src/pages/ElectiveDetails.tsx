@@ -74,7 +74,7 @@ const ElectiveDetailPage = () => {
     setFavoriteLoading(true);
 
     try {
-      const response = await fetchBackend(`/api/electives/favorites`, {
+      const response = await fetchBackend(`/api/users/me/favorites`, {
         body: JSON.stringify({ electiveId: elective.id }),
         method: prevFavorited ? "DELETE" : "POST",
       });
