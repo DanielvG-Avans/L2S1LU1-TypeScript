@@ -26,14 +26,14 @@ export default function ErrorState({
   if (loading) {
     return (
       <div className={`flex items-center justify-center h-48 ${className}`}>
-        <div className="bg-white/5 p-6 rounded-lg shadow flex items-center gap-4">
+        <div className="bg-card border border-border p-6 rounded-lg shadow flex items-center gap-4">
           <div
-            className="w-6 h-6 border-2 border-t-2 border-gray-300 rounded-full animate-spin"
+            className="w-6 h-6 border-2 border-t-2 border-primary rounded-full animate-spin"
             aria-hidden="true"
           />
           <div>
-            <div className="text-gray-100 font-medium">{loadingTitle}</div>
-            <div className="text-sm text-gray-400">{loadingMessage}</div>
+            <div className="text-card-foreground font-medium">{loadingTitle}</div>
+            <div className="text-sm text-muted-foreground">{loadingMessage}</div>
           </div>
         </div>
       </div>
@@ -45,10 +45,10 @@ export default function ErrorState({
       typeof error === "string" ? error : (error && (error as Error).message) || String(error);
     return (
       <div className={`flex items-center justify-center h-48 ${className}`}>
-        <div className="w-full max-w-md bg-red-50 border border-red-200 p-4 rounded-lg shadow">
+        <div className="w-full max-w-md bg-destructive/10 border border-destructive/30 p-4 rounded-lg shadow">
           <div className="flex items-start gap-3">
             <svg
-              className="w-6 h-6 text-red-600"
+              className="w-6 h-6 text-destructive"
               viewBox="0 0 24 24"
               fill="none"
               aria-hidden="true"
@@ -75,8 +75,8 @@ export default function ErrorState({
               />
             </svg>
             <div className="flex-1">
-              <div className="text-red-800 font-medium">Fout bij laden</div>
-              <div className="text-sm text-red-600 mt-1">{message}</div>
+              <div className="text-destructive font-medium">Fout bij laden</div>
+              <div className="text-sm text-destructive/80 mt-1">{message}</div>
             </div>
           </div>
         </div>
@@ -87,9 +87,9 @@ export default function ErrorState({
   if (typeof itemsCount === "number" && itemsCount === 0) {
     return (
       <div className={`flex items-center justify-center h-48 ${className}`}>
-        <div className="w-full max-w-md bg-white/5 border border-gray-200 p-6 rounded-lg text-center shadow">
+        <div className="w-full max-w-md bg-card border border-border p-6 rounded-lg text-center shadow">
           <svg
-            className="mx-auto w-10 h-10 text-gray-400"
+            className="mx-auto w-10 h-10 text-muted-foreground"
             viewBox="0 0 24 24"
             fill="none"
             aria-hidden="true"
@@ -109,8 +109,8 @@ export default function ErrorState({
               strokeLinejoin="round"
             />
           </svg>
-          <div className="mt-3 text-gray-100 font-medium">{emptyTitle}</div>
-          <div className="mt-2 text-sm text-gray-400">{emptyMessage}</div>
+          <div className="mt-3 text-card-foreground font-medium">{emptyTitle}</div>
+          <div className="mt-2 text-sm text-muted-foreground">{emptyMessage}</div>
         </div>
       </div>
     );

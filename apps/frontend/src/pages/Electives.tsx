@@ -123,10 +123,10 @@ export default function ElectivePage(): React.ReactNode {
   };
 
   return (
-    <div className="flex flex-col md:flex-row max-w-7xl mx-auto p-6 gap-6">
+    <div className="flex flex-col md:flex-row max-w-7xl mx-auto p-6 gap-6 bg-background min-h-screen">
       {/* --- FILTER SIDEBAR --- */}
-      <aside className="md:w-64 w-full md:sticky md:top-4 self-start md:h-[calc(100vh-2rem)] overflow-y-auto bg-card rounded-xl shadow-sm p-4">
-        <h2 className="text-lg font-semibold mb-4">Filters</h2>
+      <aside className="md:w-64 w-full md:sticky md:top-4 self-start md:h-[calc(100vh-2rem)] overflow-y-auto bg-card border border-border rounded-xl shadow-sm p-4">
+        <h2 className="text-lg font-semibold mb-4 text-card-foreground">Filters</h2>
         <div className="flex flex-col gap-4">
           <ElectiveFilter
             options={uniqueValues("language")}
@@ -206,8 +206,9 @@ export default function ElectivePage(): React.ReactNode {
         </div>
 
         {filtered.length === 0 && (
-          <div className="text-center text-muted-foreground mt-20">
-            No electives found matching your search.
+          <div className="text-center text-muted-foreground mt-20 p-8 bg-card border border-border rounded-lg">
+            <p className="text-lg font-medium text-card-foreground">No electives found</p>
+            <p className="text-sm mt-2">Try adjusting your filters or search query.</p>
           </div>
         )}
       </main>

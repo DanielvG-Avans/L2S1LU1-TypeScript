@@ -42,7 +42,6 @@ const Loading: React.FC<LoadingProps> = ({
     flexDirection: "column",
     gap: 24,
     background: isFullScreen ? "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" : "transparent",
-    color: "#ffffff",
     fontFamily: "'Inter', sans-serif",
   };
 
@@ -107,11 +106,11 @@ const Loading: React.FC<LoadingProps> = ({
       </svg>
 
       <div
+        className="text-foreground dark:text-white"
         style={{
           fontSize,
           fontWeight: 700,
-          color: "#ffffff",
-          textShadow: "0px 4px 8px rgba(0, 0, 0, 0.3)",
+          textShadow: isFullScreen ? "0px 4px 8px rgba(0, 0, 0, 0.3)" : "none",
           animation: "pulse 1.5s ease-in-out infinite",
         }}
       >

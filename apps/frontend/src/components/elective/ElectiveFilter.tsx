@@ -35,14 +35,14 @@ const ElectiveFilter = ({
     <div className="flex flex-col gap-2">
       {/* Visible label */}
       <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold text-gray-700">{placeholder}</span>
-        {icon ? <span className="ml-2 text-gray-500">{icon}</span> : null}
+        <span className="text-sm font-semibold text-foreground">{placeholder}</span>
+        {icon ? <span className="ml-2 text-muted-foreground">{icon}</span> : null}
       </div>
 
       {/* Accessible select */}
       <Select onValueChange={onChange} defaultValue={defaultValue}>
         <SelectTrigger
-          className={`w-full px-3 py-2 rounded-md border border-gray-200 bg-white text-left shadow-sm hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-300 ${triggerClassName ?? ""}`}
+          className={`w-full px-3 py-2 rounded-md border border-input bg-background text-left shadow-sm hover:border-border focus:outline-none focus:ring-2 focus:ring-ring ${triggerClassName ?? ""}`}
           aria-label={ariaLabel ?? placeholder}
         >
           <SelectValue placeholder={placeholder} />
