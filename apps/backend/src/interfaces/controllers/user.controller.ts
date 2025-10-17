@@ -1,4 +1,3 @@
-import { type IElectiveService } from "src/application/ports/elective.port";
 import { type RequestWithCookies, AuthGuard } from "../guards/auth.guard";
 import { type IUserService } from "src/application/ports/user.port";
 import { type Elective } from "src/domain/elective/elective";
@@ -32,8 +31,6 @@ export class UserController {
   constructor(
     @Inject(SERVICES.USER)
     private readonly userService: IUserService,
-    @Inject(SERVICES.ELECTIVE)
-    private readonly electiveService: IElectiveService,
   ) {}
 
   @Get("me")
