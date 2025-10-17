@@ -35,7 +35,7 @@ const ElectiveDetailPage = () => {
         setLoading(true);
         const [electiveRes, favoriteRes] = await Promise.all([
           fetchBackend(`/api/electives/${electiveId}`),
-          fetchBackend(`/api/electives/favorites/${electiveId}`),
+          fetchBackend(`/api/users/me/favorites/${electiveId}`),
         ]);
 
         if (!electiveRes.ok) throw new Error(`Failed to fetch elective: ${electiveRes.statusText}`);

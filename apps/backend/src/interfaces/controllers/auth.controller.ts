@@ -1,13 +1,12 @@
-import { AuthGuard, type RequestWithCookies } from "../guards/auth.guard";
 import { type IAuthService } from "src/application/ports/auth.port";
 import { type IUserService } from "src/application/ports/user.port";
 import { type loginDto } from "../dtos/login.dto";
-import { User } from "src/domain/user/user";
 import { ApiTags } from "@nestjs/swagger";
 import { SERVICES } from "src/di-tokens";
 import { type Response } from "express";
 import { nodeEnv } from "src/constants";
 import {
+  UnauthorizedException,
   HttpStatus,
   Controller,
   HttpCode,
@@ -16,10 +15,6 @@ import {
   Body,
   Post,
   Res,
-  Req,
-  Get,
-  UseGuards,
-  UnauthorizedException,
 } from "@nestjs/common";
 
 @ApiTags("auth")
@@ -56,24 +51,5 @@ export class AuthController {
       maxAge: 3600000, // 1 hour
     });
     return { accessToken: result.data.accessToken };
-  }
-
-  @Get("me")
-  @UseGuards(AuthGuard)
-  public async me(@Req() req: RequestWithCookies): Promise<User> {
-    const claims = req.authClaims;
-    if (!claims || !claims.sub) {
-      this.logger.warn("User not authenticated! No claims found in me()");
-      throw new UnauthorizedException("Unauthorized");
-    }
-
-    const userId = claims.sub.toString();
-    const userResult = await this.userService.getUserById(userId);
-    if (!userResult.ok) {
-      this.logger.warn(`User not found in me(): ${userId}`);
-      throw new UnauthorizedException("Unauthorized");
-    }
-
-    return userResult.data;
   }
 }
