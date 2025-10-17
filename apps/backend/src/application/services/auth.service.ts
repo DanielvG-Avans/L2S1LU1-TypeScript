@@ -4,6 +4,7 @@ import { SERVICES } from "../../di-tokens";
 import { type IUserService } from "../ports/user.port";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { loginResponse, loginRequest, IAuthService } from "../ports/auth.port";
+import { Result, ok, err } from "../../domain/result";
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -15,27 +16,33 @@ export class AuthService implements IAuthService {
     private jwtService: JwtService,
   ) {}
 
-  public async login(data: loginRequest): Promise<loginResponse> {
+  public async login(data: loginRequest): Promise<Result<loginResponse>> {
     if (!data || !data.email || !data.password) {
-      throw new Error("Email and password are required");
+      return err("INVALID_INPUT", "Email and password are required");
     }
 
-    const user = await this.userService.getUserByEmail(data.email);
-    if (!user) {
-      throw new Error("Invalid email or password");
+    const userResult = await this.userService.getUserByEmail(data.email);
+    if (!userResult.ok) {
+      return err("INVALID_CREDENTIALS", "Invalid email or password");
     }
 
+    const user = userResult.data;
     const isPasswordValid = await bcrypt.compare(data.password, user.passwordHash);
     if (!isPasswordValid) {
-      throw new Error("Invalid email or password");
+      return err("INVALID_CREDENTIALS", "Invalid email or password");
     }
 
-    const accessToken = await this.jwtService.signAsync({
-      sub: user.id,
-      email: user.email,
-      first: user.firstName,
-      last: user.lastName,
-    });
-    return { accessToken };
+    try {
+      const accessToken = await this.jwtService.signAsync({
+        sub: user.id,
+        email: user.email,
+        first: user.firstName,
+        last: user.lastName,
+      });
+      return ok({ accessToken });
+    } catch (error) {
+      this.logger.error("Failed to sign JWT", error);
+      return err("JWT_SIGN_ERROR", "Failed to generate access token");
+    }
   }
 }

@@ -1,10 +1,11 @@
-import { Module as NestModule } from "@nestjs/common";
+import { Module } from "@nestjs/common";
 import { AuthController } from "./controllers/auth.controller";
-import { ModuleController } from "./controllers/module.controller";
+import { UserController } from "./controllers/user.controller";
 import { ApplicationModule } from "../application/application.module";
+import { ElectiveController } from "./controllers/elective.controller";
 
-@NestModule({
+@Module({
   imports: [ApplicationModule],
-  controllers: [AuthController, ModuleController],
+  controllers: [AuthController, ElectiveController, UserController],
 })
 export class InterfacesModule {}

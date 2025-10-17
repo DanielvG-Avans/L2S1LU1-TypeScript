@@ -12,7 +12,7 @@ interface SelectOption {
   label: React.ReactNode;
 }
 
-interface ModuleFilterProps {
+interface ElectiveFilterProps {
   options: SelectOption[];
   onChange: (value: string) => void;
   defaultValue?: string;
@@ -22,7 +22,7 @@ interface ModuleFilterProps {
   ariaLabel?: string;
 }
 
-const ModuleFilter = ({
+const ElectiveFilter = ({
   options,
   onChange,
   defaultValue,
@@ -30,7 +30,7 @@ const ModuleFilter = ({
   triggerClassName,
   icon,
   ariaLabel,
-}: ModuleFilterProps) => {
+}: ElectiveFilterProps) => {
   return (
     <div className="flex flex-col gap-2">
       {/* Visible label */}
@@ -60,4 +60,4 @@ const ModuleFilter = ({
   );
 };
 
-export default ModuleFilter;
+export default ElectiveFilter;

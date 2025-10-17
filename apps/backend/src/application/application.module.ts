@@ -4,7 +4,7 @@ import { jwtSecret } from "../constants";
 import { AuthService } from "./services/auth.service";
 import { UserService } from "./services/user.service";
 import { Module as NestModule } from "@nestjs/common";
-import { ModuleService } from "./services/module.service";
+import { ElectiveService } from "./services/elective.service";
 import { InfrastructureModule } from "../infrastructure/infrastructure.module";
 
 @NestModule({
@@ -19,8 +19,8 @@ import { InfrastructureModule } from "../infrastructure/infrastructure.module";
   providers: [
     { provide: SERVICES.AUTH, useClass: AuthService },
     { provide: SERVICES.USER, useClass: UserService },
-    { provide: SERVICES.MODULE, useClass: ModuleService },
+    { provide: SERVICES.ELECTIVE, useClass: ElectiveService },
   ],
-  exports: [SERVICES.AUTH, SERVICES.MODULE, SERVICES.USER],
+  exports: [SERVICES.AUTH, SERVICES.ELECTIVE, SERVICES.USER],
 })
 export class ApplicationModule {}

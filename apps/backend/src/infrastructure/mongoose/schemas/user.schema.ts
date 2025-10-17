@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { HydratedDocument, Types } from "mongoose";
-import { ModuleModel } from "./module.schema";
+import { ElectiveModel } from "./elective.schema";
 
 export type UserDocument = HydratedDocument<UserModel>;
 
@@ -18,8 +18,8 @@ export class UserModel {
   @Prop()
   passwordHash: string;
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: "Module" }] })
-  favorites: ModuleModel[];
+  @Prop({ type: [{ type: Types.ObjectId, ref: "Elective" }] })
+  favorites: ElectiveModel[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(UserModel);

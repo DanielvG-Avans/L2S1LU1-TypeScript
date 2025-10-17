@@ -1,18 +1,19 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import ProviderBadge from "@/components/module/ProviderBadge";
+import ProviderBadge from "@/components/elective/ProviderBadge";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import type { Module } from "@/types/Module";
+import type { Elective } from "@/types/Elective";
 import { memo, useMemo } from "react";
 
 interface Props {
-  module: Module;
+  elective: Elective;
 }
 
-const ModuleCard = ({ module }: Props) => {
+const ElectiveCard = ({ elective }: Props) => {
   const {
+    id: electiveId,
     name,
-    code: moduleCode,
+    code: electiveCode,
     language,
     provider,
     description,
@@ -21,7 +22,7 @@ const ModuleCard = ({ module }: Props) => {
     credits,
     level,
     location,
-  } = module;
+  } = elective;
 
   const meta = useMemo(
     () =>
@@ -53,15 +54,18 @@ const ModuleCard = ({ module }: Props) => {
       role="article"
       tabIndex={0}
       onClick={() => {
-        navigate(`/modules/${encodeURIComponent(moduleCode)}`, {
+        navigate(`/electives/${encodeURIComponent(electiveId as string)}`, {
           replace: false,
           state: { from: window.location.pathname },
         });
       }}
       onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
+        if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
           e.preventDefault();
-          (e.currentTarget as HTMLElement).click();
+          navigate(`/electives/${encodeURIComponent(electiveId as string)}`, {
+            replace: false,
+            state: { from: window.location.pathname },
+          });
         }
       }}
     >
@@ -77,12 +81,12 @@ const ModuleCard = ({ module }: Props) => {
               {name}
             </CardTitle>
             <CardDescription className="text-xs sm:text-sm mt-1 truncate">
-              {moduleCode} • {language}
+              {electiveCode} • {language}
             </CardDescription>
           </div>
 
           <div className="shrink-0">
-            <ProviderBadge provider={provider} />
+            <ProviderBadge provider={provider} codeOnly={true} />
           </div>
         </div>
       </CardHeader>
@@ -121,7 +125,7 @@ const ModuleCard = ({ module }: Props) => {
   );
 };
 
-const MemoModuleCard = memo(ModuleCard);
-MemoModuleCard.displayName = "ModuleCard";
+const MemoElectiveCard = memo(ElectiveCard);
+MemoElectiveCard.displayName = "ElectiveCard";
 
-export default MemoModuleCard;
+export default MemoElectiveCard;

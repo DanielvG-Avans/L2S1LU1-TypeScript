@@ -8,7 +8,10 @@ type HeaderProps = {
   onLogout?: () => void;
 };
 
-const navItems = [{ title: "Home", href: "/" }];
+const navItems = [
+  { title: "Home", href: "/" },
+  { title: "Electives", href: "/electives" },
+];
 
 const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
   const [mobileOpen, setMobileOpen] = useState(false);

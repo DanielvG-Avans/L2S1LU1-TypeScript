@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { HydratedDocument } from "mongoose";
 
-export type ModuleDocument = HydratedDocument<ModuleModel>;
+export type ElectiveDocument = HydratedDocument<ElectiveModel>;
 
 @Schema({ timestamps: true })
-export class ModuleModel {
+export class ElectiveModel {
   @Prop({ required: true })
   code: string;
 
@@ -39,4 +39,4 @@ export class ModuleModel {
   tags: string[];
 }
 
-export const ModuleSchema = SchemaFactory.createForClass(ModuleModel);
+export const ElectiveSchema = SchemaFactory.createForClass(ElectiveModel);

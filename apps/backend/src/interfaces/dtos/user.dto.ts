@@ -1,4 +1,4 @@
-export interface User {
+export interface UserWithoutPassword {
   id?: string; // optional for frontend
   firstName: string;
   lastName: string;
@@ -6,8 +6,4 @@ export interface User {
   favorites: string[]; // list of Elective _id's
   createdAt?: string;
   updatedAt?: string;
-}
-
-export interface UserWithElectives extends User {
-  favorites: Elective[];
 }

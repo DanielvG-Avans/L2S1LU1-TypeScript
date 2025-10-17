@@ -1,7 +1,9 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import ElectiveDetailPage from "./pages/ElectiveDetails";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { createRoot } from "react-dom/client";
+import ElectivesPage from "./pages/Electives";
 import { Layout } from "@/layouts/Layout";
 import ProfilePage from "@/pages/Profile";
 import NotFound from "@/pages/NotFound";
@@ -20,6 +22,22 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <HomePage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/electives",
+        element: (
+          <ProtectedRoute>
+            <ElectivesPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/electives/:electiveId",
+        element: (
+          <ProtectedRoute>
+            <ElectiveDetailPage />
           </ProtectedRoute>
         ),
       },

@@ -4,7 +4,7 @@ export interface User {
   lastName: string;
   email: string;
   passwordHash: string;
-  favorites: string[]; // list of Module _id's
+  favorites: string[]; // list of Elective _id's
   createdAt?: string;
   updatedAt?: string;
 }
