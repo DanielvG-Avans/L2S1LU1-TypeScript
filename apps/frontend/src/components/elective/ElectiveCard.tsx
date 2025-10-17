@@ -60,9 +60,12 @@ const ElectiveCard = ({ elective }: Props) => {
         });
       }}
       onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
+        if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
           e.preventDefault();
-          (e.currentTarget as HTMLElement).click();
+          navigate(`/electives/${encodeURIComponent(electiveId as string)}`, {
+            replace: false,
+            state: { from: window.location.pathname },
+          });
         }
       }}
     >
