@@ -42,6 +42,11 @@ export default function ElectivePage(): React.ReactNode {
           const data = (await response.json()) as Elective[];
           if (Array.isArray(data)) setElectives(data);
           else setError("Ongeldige data ontvangen van de server.");
+        } else {
+          // Read any body text for more context, include status
+
+          setError(`Server error: ${response.status} ${response.statusText}`);
+          return;
         }
       } catch (err) {
         setError((err as Error).message);
