@@ -111,42 +111,51 @@ const ElectiveDetailPage = () => {
 
   if (loading)
     return (
-      <div className="flex items-center justify-center min-h-[60vh] text-muted-foreground animate-pulse">
-        Loading elective details...
+      <div className="flex items-center justify-center min-h-[60vh] bg-background">
+        <div className="flex flex-col items-center gap-4 p-8 bg-card border border-border rounded-lg">
+          <div className="w-8 h-8 border-2 border-t-2 border-primary rounded-full animate-spin" />
+          <p className="text-muted-foreground animate-pulse">Loading elective details...</p>
+        </div>
       </div>
     );
 
   if (error || !elective)
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
-        <p className="text-muted-foreground mb-4">{error ?? "Elective not found."}</p>
-        <Button onClick={() => navigate(-1)}>Go Back</Button>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6 bg-background">
+        <div className="bg-card border border-border rounded-lg p-8 max-w-md">
+          <p className="text-muted-foreground mb-4">{error ?? "Elective not found."}</p>
+          <Button onClick={() => navigate(-1)} variant="outline">
+            Go Back
+          </Button>
+        </div>
       </div>
     );
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10 space-y-8">
+    <div className="max-w-6xl mx-auto px-4 py-10 space-y-8 bg-background min-h-screen">
       {/* Toast container */}
       <Toaster />
 
       {/* Hero Section */}
-      <div className="relative rounded-3xl overflow-hidden shadow-lg group">
+      <div className="relative rounded-3xl overflow-hidden shadow-lg group border border-border">
         <img
           src="/keuzemodule_fallback_16-9.webp"
           alt={`${elective.name} banner`}
           className="w-full h-64 sm:h-96 object-cover transform group-hover:scale-[1.02] transition-transform duration-500"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/60 to-transparent backdrop-blur-[2px]" />
-        <div className="absolute bottom-8 left-8 sm:left-10 text-white drop-shadow-lg space-y-1">
-          <h1 className="text-3xl sm:text-4xl font-bold leading-tight">{elective.name}</h1>
-          <p className="text-sm sm:text-base opacity-90">
+        <div className="absolute bottom-8 left-8 sm:left-10 drop-shadow-lg space-y-1">
+          <h1 className="text-3xl sm:text-4xl font-bold leading-tight text-foreground drop-shadow-md">
+            {elective.name}
+          </h1>
+          <p className="text-sm sm:text-base text-foreground/90">
             {elective.code} • {elective.language}
           </p>
         </div>
       </div>
 
       {/* Provider + Meta */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4 px-2">
         <ProviderBadge provider={elective.provider} />
         <div className="flex flex-wrap gap-2">
           {meta.map((m) => (

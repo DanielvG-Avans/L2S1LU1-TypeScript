@@ -9,9 +9,9 @@ export default function NotFound(): React.ReactNode {
     <main
       role="main"
       aria-labelledby="notfound-title"
-      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-800 to-pink-600 text-white p-6"
+      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/20 via-primary/10 to-accent/20 dark:from-primary/10 dark:via-background dark:to-accent/10 p-6"
     >
-      <div className="w-full max-w-4xl bg-white/5 border border-white/10 rounded-3xl p-8 sm:p-12 backdrop-blur-sm flex flex-col md:flex-row items-center gap-8">
+      <div className="w-full max-w-4xl bg-card/90 border border-border rounded-3xl p-8 sm:p-12 backdrop-blur-sm flex flex-col md:flex-row items-center gap-8 shadow-lg">
         <div className="flex-1 flex items-center justify-center">
           {/* Simple, lightweight illustrative SVG */}
           <svg
@@ -25,8 +25,8 @@ export default function NotFound(): React.ReactNode {
           >
             <defs>
               <linearGradient id="g1" x1="0" x2="1">
-                <stop offset="0" stopColor="#fff" stopOpacity="0.95" />
-                <stop offset="1" stopColor="#ffd1ea" stopOpacity="0.95" />
+                <stop offset="0" stopColor="currentColor" stopOpacity="0.2" />
+                <stop offset="1" stopColor="currentColor" stopOpacity="0.1" />
               </linearGradient>
             </defs>
 
@@ -37,7 +37,7 @@ export default function NotFound(): React.ReactNode {
               height="116"
               rx="20"
               fill="url(#g1)"
-              fillOpacity="0.06"
+              className="text-muted-foreground"
             />
             <g
               transform="translate(30,18)"
@@ -47,15 +47,16 @@ export default function NotFound(): React.ReactNode {
               strokeLinecap="round"
               strokeLinejoin="round"
               opacity="0.95"
+              className="text-muted-foreground"
             >
-              <path d="M20 80C20 80 36 28 92 28C148 28 164 80 164 80" className="text-white/30" />
+              <path d="M20 80C20 80 36 28 92 28C148 28 164 80 164 80" />
               <text
                 x="56"
                 y="76"
                 fill="currentColor"
                 fontWeight="800"
                 fontSize="48"
-                className="text-transparent bg-clip-text bg-gradient-to-r from-white to-pink-200"
+                className="fill-foreground"
               >
                 404
               </text>
@@ -68,15 +69,15 @@ export default function NotFound(): React.ReactNode {
             id="notfound-title"
             className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-none"
           >
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-pink-200">
-              404
-            </span>
+            <span className="text-foreground">404</span>
           </h1>
 
-          <h2 className="mt-3 text-2xl sm:text-3xl font-semibold">Page not found</h2>
+          <h2 className="mt-3 text-2xl sm:text-3xl font-semibold text-foreground">
+            Page not found
+          </h2>
 
-          <p className="mt-2 text-white/80 max-w-xl">
-            The page you’re looking for doesn’t exist or has moved. You can go back to the previous
+          <p className="mt-2 text-muted-foreground max-w-xl">
+            The page you're looking for doesn't exist or has moved. You can go back to the previous
             page, return home, or contact support if you need help.
           </p>
 
@@ -84,14 +85,14 @@ export default function NotFound(): React.ReactNode {
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="inline-flex items-center justify-center px-5 py-3 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium transition"
+              className="inline-flex items-center justify-center px-5 py-3 rounded-lg bg-secondary hover:bg-secondary/80 border border-border text-secondary-foreground font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             >
               Go back
             </button>
 
             <Link
               to="/"
-              className="inline-flex items-center justify-center px-5 py-3 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium transition"
+              className="inline-flex items-center justify-center px-5 py-3 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             >
               Home
             </Link>

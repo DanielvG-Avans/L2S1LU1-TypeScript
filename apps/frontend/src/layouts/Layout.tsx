@@ -3,6 +3,7 @@ import Header from "../components/Header";
 import { Outlet } from "react-router-dom";
 import type { User } from "../types/User";
 import { fetchBackend } from "../lib/fetch";
+import { Toaster } from "@/components/ui/sonner";
 
 export const Layout = (): React.ReactNode | null => {
   const [user, setUser] = useState<User | undefined>(undefined);
@@ -27,9 +28,10 @@ export const Layout = (): React.ReactNode | null => {
   return (
     <>
       <Header user={user} onLogout={onLogout} />
-      <main>
+      <main className="min-h-screen bg-background">
         <Outlet context={{ user }} />
       </main>
+      <Toaster richColors closeButton position="top-right" />
     </>
   );
 };
