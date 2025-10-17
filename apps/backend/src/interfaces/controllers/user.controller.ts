@@ -3,7 +3,6 @@ import { type RequestWithCookies, AuthGuard } from "../guards/auth.guard";
 import { type IUserService } from "src/application/ports/user.port";
 import { type Elective } from "src/domain/elective/elective";
 import { type favoriteDto } from "../dtos/favorites.dto";
-import { type User } from "src/domain/user/user";
 import { ApiTags } from "@nestjs/swagger";
 import { SERVICES } from "src/di-tokens";
 import {
@@ -22,6 +21,7 @@ import {
   Get,
   Req,
 } from "@nestjs/common";
+import { UserWithoutPassword } from "../dtos/user.dto";
 
 @ApiTags("users")
 @UseGuards(AuthGuard)
@@ -38,7 +38,7 @@ export class UserController {
 
   @Get("me")
   @UseGuards(AuthGuard)
-  public async me(@Req() req: RequestWithCookies): Promise<User> {
+  public async me(@Req() req: RequestWithCookies): Promise<UserWithoutPassword> {
     const claims = req.authClaims;
     if (!claims || !claims.sub) {
       this.logger.warn("User not authenticated! No claims found in me()");
@@ -52,7 +52,8 @@ export class UserController {
       throw new UnauthorizedException("Unauthorized");
     }
 
-    return userResult.data;
+    const user = userResult.data as UserWithoutPassword;
+    return user;
   }
 
   @Get("me/favorites")
