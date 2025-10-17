@@ -90,7 +90,7 @@ const ProfilePage = () => {
             Retry
           </Button>
           <Button
-            onClick={() => (window.location.href = "/login")}
+            onClick={() => (window.location.href = "/auth/login")}
             variant="destructive"
             className="rounded-xl"
           >
