@@ -9,6 +9,7 @@ import { fetchBackend } from "@/lib/fetch";
 import Loading from "@/components/Loading";
 import { toast } from "sonner";
 import ErrorState from "@/components/ErrorState";
+import Cookies from "js-cookie";
 
 const ProfilePage = () => {
   const [user, setUser] = useState<UserWithElectives | null>(null);
@@ -123,7 +124,7 @@ const ProfilePage = () => {
             className="rounded-xl"
             onClick={() => {
               toast.success("Logged out!");
-              cookieStore.delete("ACCESSTOKEN");
+              Cookies.remove("ACCESSTOKEN", { path: "/" });
               window.location.replace("/auth/login");
             }}
           >
