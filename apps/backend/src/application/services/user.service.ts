@@ -68,6 +68,14 @@ export class UserService implements IUserService {
       return err("USER_NOT_FOUND", "User not found", { userId });
     }
 
+    if (user.favorites?.includes(electiveId)) {
+      this.logger.warn(`Elective with id ${electiveId} is already a favorite of user ${userId}`);
+      return err("ELECTIVE_ALREADY_FAVORITE", "Elective is already a favorite", {
+        userId,
+        electiveId,
+      });
+    }
+
     user.favorites = user.favorites || [];
     user.favorites.push(electiveId);
     await this.userRepo.update(userId, user);
@@ -98,10 +106,32 @@ export class UserService implements IUserService {
       return err("USER_NOT_FOUND", "User not found", { userId });
     }
 
-    const favoriteList = user.favorites || [];
-    if (!favoriteList.includes(electiveId)) {
-      this.logger.warn(`Elective with id ${electiveId} is not a favorite of user ${userId}`);
-      return err("ELECTIVE_NOT_FAVORITE", "Elective is not a favorite", { userId, electiveId });
+    const favoriteList = user.favorites ?? [];
+    if (Array.isArray(favoriteList)) {
+      const favs = favoriteList as unknown[];
+      for (let i = 0; i < favs.length; i++) {
+        const val: unknown = favs[i];
+        if (typeof val === "string") continue;
+
+        if (val && typeof (val as { toHexString?: unknown }).toHexString === "function") {
+          // mongodb ObjectId
+          favs[i] = (val as { toHexString: () => string }).toHexString();
+          continue;
+        }
+
+        if (val && typeof (val as { toString?: unknown }).toString === "function") {
+          const s = (val as { toString: () => string }).toString();
+          const m = s.match(/([0-9a-fA-F]{24})/);
+          favs[i] = m ? m[1] : s;
+          continue;
+        }
+
+        favs[i] = String(val);
+      }
+    }
+
+    if (!favoriteList || !favoriteList.includes(electiveId)) {
+      return ok(false);
     }
 
     return ok(true);
