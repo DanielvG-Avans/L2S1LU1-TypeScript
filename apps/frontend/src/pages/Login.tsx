@@ -79,20 +79,22 @@ const Login = () => {
   };
 
   return (
-    <div className="w-full max-w-md bg-[#debeff] text-gray-900 backdrop-blur-md rounded-2xl shadow-2xl p-8">
+    <div className="w-full max-w-md bg-card/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-border">
       <header className="text-center mb-6">
-        <h1 className="text-3xl font-semibold text-gray-900">Welcome</h1>
-        <p className="text-sm text-gray-700 mt-1">Sign in to continue to Avans Keuzekompas</p>
+        <h1 className="text-3xl font-semibold text-card-foreground">Welcome</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Sign in to continue to Avans Keuzekompas
+        </p>
       </header>
 
       <form className="space-y-4" aria-label="Login form" onSubmit={handleLogin}>
         <div className="relative">
-          <label htmlFor="emailInput" className="">
+          <label htmlFor="emailInput" className="text-sm font-medium text-card-foreground">
             Email
           </label>
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none mt-6">
             <svg
-              className="w-5 h-5 text-gray-500"
+              className="w-5 h-5 text-muted-foreground"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -114,7 +116,7 @@ const Login = () => {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 placeholder-gray-500 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-amber-400 transition"
+            className="w-full pl-10 pr-4 py-3 bg-background border border-input text-foreground placeholder:text-muted-foreground rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors"
             aria-describedby="email-note"
           />
           <p id="email-note" className="sr-only">
@@ -122,12 +124,12 @@ const Login = () => {
           </p>
         </div>
         <div className="relative">
-          <label htmlFor="passwordInput" className="">
+          <label htmlFor="passwordInput" className="text-sm font-medium text-card-foreground">
             Password
           </label>
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none mt-6">
             <svg
-              className="w-5 h-5 text-gray-500"
+              className="w-5 h-5 text-muted-foreground"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -155,7 +157,7 @@ const Login = () => {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 placeholder-gray-500 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-amber-400 transition"
+            className="w-full pl-10 pr-4 py-3 bg-background border border-input text-foreground placeholder:text-muted-foreground rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors"
           />
         </div>
 
@@ -164,7 +166,7 @@ const Login = () => {
             <div
               role="alert"
               aria-live="assertive"
-              className="flex items-start gap-3 bg-red-50 border border-red-200 text-red-800 px-4 py-2 rounded-lg shadow-sm"
+              className="flex items-start gap-3 bg-destructive/10 border border-destructive/30 text-destructive px-4 py-2 rounded-lg shadow-sm"
             >
               <svg
                 className="w-5 h-5 flex-shrink-0"
@@ -188,7 +190,7 @@ const Login = () => {
             <div
               role="status"
               aria-live="polite"
-              className="flex items-start gap-3 bg-green-50 border border-green-200 text-green-800 px-4 py-2 rounded-lg shadow-sm"
+              className="flex items-start gap-3 bg-green-500/10 border border-green-500/30 text-green-700 dark:text-green-400 px-4 py-2 rounded-lg shadow-sm"
             >
               <svg
                 className="w-5 h-5 flex-shrink-0"
@@ -211,7 +213,7 @@ const Login = () => {
 
         <button
           type="submit"
-          className="w-full py-3 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white font-medium shadow hover:scale-[1.01] transform transition cursor-pointer"
+          className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-medium shadow hover:bg-primary/90 hover:scale-[1.01] transform transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
         >
           Sign in
         </button>

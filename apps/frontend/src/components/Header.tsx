@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import type { User } from "@/types/User";
 import keuzekompasLogo from "@/assets/keuzekompas.svg";
 import React, { useEffect, useRef, useState } from "react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 type HeaderProps = {
   user: User | undefined;
@@ -31,13 +32,13 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
   const initials = user ? user.firstName[0].toUpperCase() + user.lastName[0].toUpperCase() : "";
 
   return (
-    <header className="bg-white shadow-sm">
+    <header className="bg-background border-b border-border shadow-sm">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left: Logo */}
           <Link
             to="/"
-            className="flex items-center gap-3 text-gray-900 no-underline"
+            className="flex items-center gap-3 text-foreground no-underline hover:opacity-80 transition-opacity"
             aria-label="Homepage"
           >
             {keuzekompasLogo && (
@@ -52,35 +53,38 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
               <Link
                 key={item.title}
                 to={item.href}
-                className="text-gray-600 hover:text-gray-900 transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 {item.title}
               </Link>
             ))}
           </nav>
 
-          {/* Right: Auth / Mobile toggle */}
+          {/* Right: Auth / Theme Toggle / Mobile toggle */}
           <div className="flex items-center gap-3">
+            {/* Theme Toggle - visible on all screen sizes */}
+            <ThemeToggle />
+
             <div className="hidden md:block">
               {user ? (
                 <div className="relative" ref={profileRef}>
                   <button
                     onClick={() => setProfileOpen((s) => !s)}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-gray-100 focus:outline-none"
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors"
                     aria-haspopup="true"
                     aria-expanded={profileOpen}
                   >
-                    <span className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-medium">
+                    <span className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
                       {initials}
                     </span>
-                    <span className="text-sm text-gray-800">{user?.firstName}</span>
+                    <span className="text-sm text-foreground">{user?.firstName}</span>
                   </button>
 
                   {profileOpen && (
-                    <div className="absolute right-0 mt-2 w-44 bg-white border rounded-md shadow-lg py-1 z-10">
+                    <div className="absolute right-0 mt-2 w-44 bg-popover border border-border rounded-md shadow-lg py-1 z-10">
                       <Link
                         to="/profile"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        className="block px-4 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
                       >
                         Profile
                       </Link>
@@ -89,7 +93,7 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
                           setProfileOpen(false);
                           onLogout?.();
                         }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        className="w-full text-left px-4 py-2 text-sm text-popover-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
                       >
                         Logout
                       </button>
@@ -101,7 +105,7 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
 
             {/* Mobile menu button */}
             <button
-              className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:bg-gray-100"
+              className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors"
               onClick={() => setMobileOpen((s) => !s)}
               aria-expanded={mobileOpen}
               aria-label="Toggle menu"
@@ -130,27 +134,27 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
 
       {/* Mobile panel */}
       {mobileOpen && (
-        <div className="md:hidden border-t">
+        <div className="md:hidden border-t border-border">
           <div className="px-4 pt-4 pb-3 space-y-2">
             {navItems.map((item) => (
               <Link
                 key={item.title}
                 to={item.href}
-                className="block px-2 py-2 text-gray-700 rounded hover:bg-gray-50"
+                className="block px-2 py-2 text-foreground rounded hover:bg-accent hover:text-accent-foreground transition-colors"
               >
                 {item.title}
               </Link>
             ))}
 
             {user ? (
-              <div className="pt-2 border-t">
+              <div className="pt-2 border-t border-border">
                 <div className="flex items-center gap-3 px-2 py-2">
-                  <div className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-medium">
+                  <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-medium">
                     {initials}
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-gray-900">{user?.firstName}</div>
-                    <Link to="/profile" className="text-xs text-gray-500 hover:underline">
+                    <div className="text-sm font-medium text-foreground">{user?.firstName}</div>
+                    <Link to="/profile" className="text-xs text-muted-foreground hover:underline">
                       View profile
                     </Link>
                   </div>
@@ -161,7 +165,7 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
                       setMobileOpen(false);
                       onLogout?.();
                     }}
-                    className="w-full text-left px-3 py-2 rounded-md bg-red-50 text-red-600 text-sm"
+                    className="w-full text-left px-3 py-2 rounded-md bg-destructive/10 text-destructive text-sm hover:bg-destructive/20 transition-colors focus:ring-2 focus:ring-ring focus:ring-offset-2"
                   >
                     Logout
                   </button>

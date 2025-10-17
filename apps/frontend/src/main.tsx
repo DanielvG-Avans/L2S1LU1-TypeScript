@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ElectiveDetailPage from "./pages/ElectiveDetails";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { createRoot } from "react-dom/client";
 import ElectivesPage from "./pages/Electives";
@@ -62,6 +63,13 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <ThemeProvider
+      defaultTheme="system"
+      storageKey="theme"
+      enableSystem
+      disableTransitionOnChange={false}
+    >
+      <RouterProvider router={router} />
+    </ThemeProvider>
   </StrictMode>,
 );
