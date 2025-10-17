@@ -1,61 +1,101 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { User, UserWithElectives } from "@/types/User";
+import { useCallback, useEffect, useState } from "react";
 import type { Elective } from "@/types/Elective";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useEffect, useState } from "react";
 import { fetchBackend } from "@/lib/fetch";
+import Loading from "@/components/Loading";
 import { toast } from "sonner";
+import ErrorState from "@/components/ErrorState";
 
 const ProfilePage = () => {
   const [user, setUser] = useState<UserWithElectives | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        setLoading(true);
-        const userRes = await fetchBackend("/api/users/me");
-        if (!userRes.ok) {
-          setError("Failed to load user profile");
-          return;
-        }
-        const userData = (await userRes.json()) as User;
-
-        const favoriteRes = await fetchBackend("/api/users/me/favorites");
-        if (!favoriteRes.ok) {
-          setError("Failed to load favorite electives");
-          return;
-        }
-        const favoritesData = (await favoriteRes.json()) as Elective[];
-
-        const data: UserWithElectives = { ...userData, favorites: favoritesData };
-
-        setUser(data);
-      } catch (err) {
-        console.error(err);
-        toast.error("Could not load profile information.");
-      } finally {
-        setLoading(false);
+  const loadProfile = useCallback(async () => {
+    try {
+      setError(null);
+      setLoading(true);
+      const userRes = await fetchBackend("/api/users/me");
+      if (!userRes.ok) {
+        setError("Failed to load user profile");
+        toast.error("Failed to load profile.");
+        return;
       }
-    };
-    loadProfile();
+      const userData = (await userRes.json()) as User;
+      if (!userData) {
+        setError("User profile not found");
+        toast.error("Profile not found.");
+        return;
+      }
+
+      const favoriteRes = await fetchBackend("/api/users/me/favorites");
+      if (!favoriteRes.ok) {
+        toast.error("Failed to load favorites.");
+        return;
+      }
+
+      const favoritesData = (await favoriteRes.json()) as Elective[];
+      if (!favoritesData || favoritesData.length === 0) {
+        setUser({ ...userData, favorites: [] });
+        return;
+      }
+
+      const data: UserWithElectives = { ...userData, favorites: favoritesData };
+      setUser(data);
+    } catch (err) {
+      console.error(err);
+      setError("An unexpected error occurred while loading profile.");
+      toast.error("Could not load profile information.");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  if (loading)
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
+  if (loading) return <Loading isFullScreen={false} showLogo={false} />;
+
+  if (error)
     return (
-      <div className="flex items-center justify-center min-h-[60vh] text-muted-foreground animate-pulse">
-        Loading profile...
-      </div>
+      <>
+        <Toaster />
+        <div
+          role="status"
+          aria-live="polite"
+          className="min-h-[60vh] flex flex-col items-center justify-center"
+        >
+          <ErrorState error={error} />
+          <div className="mt-4">
+            <Button onClick={() => void loadProfile()} variant="outline" className="rounded-xl">
+              Retry
+            </Button>
+          </div>
+        </div>
+      </>
     );
 
   if (!user)
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
         <p className="text-muted-foreground mb-4">Profile not found or session expired.</p>
-        <Button onClick={() => (window.location.href = "/login")}>Go to Login</Button>
+        <div className="flex gap-2">
+          <Button onClick={() => loadProfile()} variant="outline" className="rounded-xl">
+            Retry
+          </Button>
+          <Button
+            onClick={() => (window.location.href = "/login")}
+            variant="destructive"
+            className="rounded-xl"
+          >
+            Go to Login
+          </Button>
+        </div>
       </div>
     );
 
@@ -74,26 +114,18 @@ const ProfilePage = () => {
               {user.firstName} {user.lastName}
             </h1>
             <p className="text-muted-foreground text-sm">{user.email}</p>
-            {/* {user.role && (
-              <Badge variant="secondary" className="mt-1 text-xs">
-                {user.role}
-              </Badge>
-            )} */}
           </div>
         </div>
 
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            className="rounded-xl border-border/50 hover:border-primary/50 transition-all"
-            onClick={() => toast.info("Settings coming soon!")}
-          >
-            ⚙️ Settings
-          </Button>
+        <div className="flex">
           <Button
             variant="destructive"
             className="rounded-xl"
-            onClick={() => toast.success("Logged out!")}
+            onClick={() => {
+              toast.success("Logged out!");
+              cookieStore.delete("ACCESSTOKEN");
+              window.location.replace("/auth/login");
+            }}
           >
             Log Out
           </Button>
@@ -114,11 +146,6 @@ const ProfilePage = () => {
           <div>
             <span className="font-medium text-foreground">Email:</span> {user.email}
           </div>
-          {/* {user.role && (
-            <div>
-              <span className="font-medium text-foreground">Role:</span> {user.role}
-            </div>
-          )} */}
           <div>
             <span className="font-medium text-foreground">Joined:</span>{" "}
             {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "Unknown"}
@@ -130,11 +157,7 @@ const ProfilePage = () => {
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">⭐ Favorited Electives</h2>
 
-        {(!user.favorites || user.favorites.length === 0) && (
-          <p className="text-muted-foreground text-sm">
-            You have no favorited electives yet. Explore electives and add some!
-          </p>
-        )}
+        {(!user.favorites || user.favorites.length === 0) && <EmptyFavorites />}
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {user.favorites?.map((elective) => (
@@ -186,3 +209,27 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
+
+const EmptyFavorites = () => (
+  <Card className="rounded-2xl border border-border/40 bg-gradient-to-b from-background to-muted/10">
+    <CardHeader>
+      <CardTitle className="text-lg">No favorites yet</CardTitle>
+      <CardDescription>Save electives you're interested in for quick access.</CardDescription>
+    </CardHeader>
+    <CardContent className="flex flex-col items-start sm:flex-row sm:items-center gap-4">
+      <div className="flex-1 text-sm text-muted-foreground">
+        You haven't favorited any electives. Browse electives to find ones you like and mark them as
+        favorites.
+      </div>
+      <div className="flex gap-2">
+        <Button
+          onClick={() => (window.location.href = "/electives")}
+          variant="outline"
+          className="rounded-xl"
+        >
+          Browse Electives
+        </Button>
+      </div>
+    </CardContent>
+  </Card>
+);
