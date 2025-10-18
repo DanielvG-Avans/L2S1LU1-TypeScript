@@ -1,11 +1,11 @@
 import svgr from "vite-plugin-svgr";
-import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
+import tailwindcss from "@tailwindcss/vite";
+import react from "@vitejs/plugin-react-swc";
 import { imagetools } from "vite-imagetools";
 import { defineConfig, loadEnv } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import viteCompression from "vite-plugin-compression";
-import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
