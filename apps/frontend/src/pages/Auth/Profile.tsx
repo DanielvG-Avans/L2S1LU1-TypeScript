@@ -1,11 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import type { User, UserWithElectives } from "@/types/User";
+import type { UserWithElectives } from "@/types/User";
 import { useCallback, useEffect, useState } from "react";
-import type { Elective } from "@/types/Elective";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { fetchBackend } from "@/lib/fetch";
+import { userApi, favoritesApi } from "@/services/api.service";
 import Loading from "@/components/Loading";
 import { toast } from "sonner";
 import ErrorState from "@/components/ErrorState";
@@ -20,37 +19,20 @@ const ProfilePage = () => {
     try {
       setError(null);
       setLoading(true);
-      const userRes = await fetchBackend("/api/users/me");
-      if (!userRes.ok) {
-        setError("Failed to load user profile");
-        toast.error("Failed to load profile.");
-        return;
-      }
-      const userData = (await userRes.json()) as User;
-      if (!userData) {
-        setError("User profile not found");
-        toast.error("Profile not found.");
-        return;
-      }
 
-      const favoriteRes = await fetchBackend("/api/users/me/favorites");
-      if (!favoriteRes.ok) {
-        toast.error("Failed to load favorites.");
-        return;
-      }
+      // Fetch user and favorites in parallel
+      const [userData, favoritesData] = await Promise.all([userApi.getMe(), favoritesApi.getAll()]);
 
-      const favoritesData = (await favoriteRes.json()) as Elective[];
-      if (!favoritesData || favoritesData.length === 0) {
-        setUser({ ...userData, favorites: [] });
-        return;
-      }
-
-      const data: UserWithElectives = { ...userData, favorites: favoritesData };
+      const data: UserWithElectives = {
+        ...userData,
+        favorites: favoritesData || [],
+      };
       setUser(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError("An unexpected error occurred while loading profile.");
-      toast.error("Could not load profile information.");
+      const errorMessage = err?.message ?? "An unexpected error occurred while loading profile.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

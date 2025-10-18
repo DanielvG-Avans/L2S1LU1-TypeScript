@@ -1,100 +1,36 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useMemo, useCallback } from "react";
 import ProviderBadge from "@/components/elective/ProviderBadge";
-import type { Elective } from "@/types/Elective";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { fetchBackend } from "@/lib/fetch";
-import { toast } from "sonner";
+import { useElective } from "@/hooks/useElective";
+import { useFavorites } from "@/hooks/useFavorites";
 
 const ElectiveDetailPage = () => {
   const { electiveId } = useParams<{ electiveId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [elective, setElective] = useState<Elective | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isFavorited, setIsFavorited] = useState(false);
-  const [favoriteLoading, setFavoriteLoading] = useState(false);
-
-  // Fetch elective & favorite status
-  useEffect(() => {
-    if (!electiveId) {
-      setError("No elective ID provided");
-      setLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [electiveRes, favoriteRes] = await Promise.all([
-          fetchBackend(`/api/electives/${electiveId}`),
-          fetchBackend(`/api/users/me/favorites/${electiveId}`),
-        ]);
-
-        if (!electiveRes.ok) throw new Error(`Failed to fetch elective: ${electiveRes.statusText}`);
-
-        const electiveData = (await electiveRes.json()) as Elective | null;
-        if (!electiveData) throw new Error("Elective not found");
-
-        if (!cancelled) {
-          setElective(electiveData);
-          setIsFavorited(favoriteRes.ok);
-        }
-      } catch (err: any) {
-        if (!cancelled) {
-          console.error(err);
-          setError(err.message || "Failed to load elective");
-          toast.error(err.message || "Failed to load elective");
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    fetchData();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [electiveId]);
+  // Use the new custom hook for fetching elective data
+  const { elective, loading, error, isFavorited, setIsFavorited } = useElective(electiveId);
+  const { toggleFavorite: toggleFavoriteApi, loading: favoriteLoading } = useFavorites();
 
   // Favorite toggle with optimistic UI
   const toggleFavorite = useCallback(async () => {
-    if (!elective || favoriteLoading) return;
+    if (!elective?.id || favoriteLoading) return;
 
     const prevFavorited = isFavorited;
     setIsFavorited(!prevFavorited);
-    setFavoriteLoading(true);
 
     try {
-      const response = await fetchBackend(`/api/users/me/favorites`, {
-        body: JSON.stringify({ electiveId: elective.id }),
-        method: prevFavorited ? "DELETE" : "POST",
-      });
-
-      if (!response.ok) throw new Error("Failed to update favorite status");
-
-      toast.success(
-        !prevFavorited ? "Added to favorites!" : "Removed from favorites!",
-        { style: { background: "#52c41a", color: "white" } }, // green for success
-      );
+      await toggleFavoriteApi(elective.id, prevFavorited);
     } catch (err) {
-      console.error(err);
-      toast.error("Could not update favorites. Try again later.", {
-        style: { background: "#ff4d4f", color: "white" }, // red for error
-      });
+      // Rollback on error
       setIsFavorited(prevFavorited);
-    } finally {
-      setFavoriteLoading(false);
     }
-  }, [elective, isFavorited, favoriteLoading]);
+  }, [elective?.id, isFavorited, favoriteLoading, toggleFavoriteApi, setIsFavorited]);
 
   // Meta info
   const meta = useMemo(() => {

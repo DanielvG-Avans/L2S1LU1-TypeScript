@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { fetchBackend } from "@/lib/fetch";
+import { authApi } from "@/services/api.service";
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
@@ -22,46 +22,12 @@ const Login = () => {
     }
 
     try {
-      const loginResponse = await fetchBackend("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), password }),
-      });
-
-      // Read body safely (handle non-json responses)
-      const raw = await (loginResponse as unknown as Response).text();
-      let loginData: any = null;
-      try {
-        loginData = raw ? JSON.parse(raw) : null;
-      } catch {
-        loginData = { _raw: raw };
-      }
-
-      if (!loginResponse.ok) {
-        // Prefer structured message from backend, fall back to status text
-        const backendMessage =
-          loginData?.message || loginData?.error || loginData?._raw || loginResponse.statusText;
-
-        if (loginResponse.status === 401) {
-          setErrorMessage("Invalid credentials. Please check your email and password.");
-        } else if (loginResponse.status === 400) {
-          setErrorMessage(backendMessage || "Bad request. Please verify your input.");
-        } else if (loginResponse.status >= 500) {
-          setErrorMessage("Server error. Please try again later.");
-        } else {
-          setErrorMessage(backendMessage || `Request failed with status ${loginResponse.status}.`);
-        }
-
-        return;
-      }
+      await authApi.login(email, password);
 
       // Successful response
       setSuccessMessage("Login successful!");
       // Clear sensitive input
       setPassword("");
-
-      // Optional: use returned token/info from loginData if present (e.g. store in localStorage)
-      // Example: if (loginData?.token) localStorage.setItem("token", loginData.token);
 
       setTimeout(() => {
         navigate("/", { replace: true });
