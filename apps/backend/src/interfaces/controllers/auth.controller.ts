@@ -1,5 +1,4 @@
 import { type IAuthService } from "src/application/ports/auth.port";
-import { type IUserService } from "src/application/ports/user.port";
 import { type loginDto } from "../dtos/login.dto";
 import { ApiTags } from "@nestjs/swagger";
 import { SERVICES } from "src/di-tokens";
@@ -25,8 +24,6 @@ export class AuthController {
   constructor(
     @Inject(SERVICES.AUTH)
     private readonly authService: IAuthService,
-    @Inject(SERVICES.USER)
-    private readonly userService: IUserService,
   ) {
     this.logger = new Logger("AuthController");
   }
