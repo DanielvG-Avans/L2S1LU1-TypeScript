@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Header from "../components/Header";
 import { Outlet } from "react-router-dom";
 import type { User } from "../types/User";
-import { fetchBackend } from "../lib/fetch";
+import { userApi } from "@/services/api.service";
 import { Toaster } from "@/components/ui/sonner";
 
 export const Layout = (): React.ReactNode | null => {
@@ -10,10 +10,11 @@ export const Layout = (): React.ReactNode | null => {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const response = await fetchBackend("/api/users/me", {});
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data as User);
+      try {
+        const userData = await userApi.getMe();
+        setUser(userData);
+      } catch (err) {
+        console.error("Failed to fetch user:", err);
       }
     };
     fetchUser();

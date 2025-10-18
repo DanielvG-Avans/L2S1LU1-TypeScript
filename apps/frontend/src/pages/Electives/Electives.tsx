@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import ErrorState from "@/components/ErrorState";
 import { Input } from "@/components/ui/input";
 import type { Elective } from "@/types/Elective";
-import { fetchBackend } from "@/lib/fetch";
+import { useElectives } from "@/hooks/useElectives";
 import {
   SelectTrigger,
   SelectContent,
@@ -15,9 +15,10 @@ import {
 } from "@/components/ui/select";
 
 export default function ElectivePage(): React.ReactNode {
+  // Use the custom hook for fetching electives
+  const { electives: electivesData, loading, error } = useElectives();
+
   // UI state
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [electives, setElectives] = useState<Elective[]>([]);
   const [filtered, setFiltered] = useState<Elective[]>([]);
   const [query, setQuery] = useState("");
@@ -33,29 +34,12 @@ export default function ElectivePage(): React.ReactNode {
     period: "all",
   });
 
-  // Fetch electives
+  // Update local state when data is fetched
   useEffect(() => {
-    const fetchElectives = async () => {
-      try {
-        const response = await fetchBackend("/api/electives");
-        if (response.ok) {
-          const data = (await response.json()) as Elective[];
-          if (Array.isArray(data)) setElectives(data);
-          else setError("Ongeldige data ontvangen van de server.");
-        } else {
-          // Read any body text for more context, include status
-
-          setError(`Server error: ${response.status} ${response.statusText}`);
-          return;
-        }
-      } catch (err) {
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchElectives();
-  }, []);
+    if (electivesData) {
+      setElectives(electivesData);
+    }
+  }, [electivesData]);
 
   // Filtering & sorting logic
   useEffect(() => {
