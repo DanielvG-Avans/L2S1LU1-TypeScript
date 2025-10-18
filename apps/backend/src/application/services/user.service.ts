@@ -33,4 +33,51 @@ export class UserService implements IUserService {
 
     return ok(user);
   }
+
+  public async createUser(data: User): Promise<Result<User>> {
+    if (!data) {
+      this.logger.warn("No user data provided for creation");
+      return err("NO_USER_DATA", "No user data provided");
+    }
+
+    const created = await this.userRepo.create(data);
+    if (!created) {
+      this.logger.error("Failed to create user");
+      return err("USER_CREATE_FAILED", "Failed to create user");
+    }
+
+    return ok(created);
+  }
+
+  public async updateUser(id: string, data: User): Promise<Result<User>> {
+    const user = await this.userRepo.findById(id);
+    if (!user) {
+      this.logger.warn(`User with id ${id} not found`);
+      return err("USER_NOT_FOUND", "User not found", { userId: id });
+    }
+
+    const updated = await this.userRepo.update(id, data);
+    if (!updated) {
+      this.logger.error(`Failed to update user with id ${id}`);
+      return err("USER_UPDATE_FAILED", "Failed to update user", { userId: id });
+    }
+
+    return ok(updated);
+  }
+
+  public async deleteUser(id: string): Promise<Result<boolean>> {
+    const user = await this.userRepo.findById(id);
+    if (!user) {
+      this.logger.warn(`User with id ${id} not found`);
+      return err("USER_NOT_FOUND", "User not found", { userId: id });
+    }
+
+    const deleted = await this.userRepo.delete(id);
+    if (!deleted) {
+      this.logger.error(`Failed to delete user with id ${id}`);
+      return err("USER_DELETE_FAILED", "Failed to delete user", { userId: id });
+    }
+
+    return ok(true);
+  }
 }

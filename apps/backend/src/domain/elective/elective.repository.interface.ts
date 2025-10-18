@@ -6,4 +6,5 @@ export interface IElectiveRepository {
   create(data: Elective): Promise<Elective>;
   update(id: string, data: Elective): Promise<Elective | null>;
   delete(id: string): Promise<boolean>;
+  isElectiveInUse(id: string): Promise<boolean>;
 }
