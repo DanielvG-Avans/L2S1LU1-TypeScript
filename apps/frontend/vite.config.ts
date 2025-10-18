@@ -55,8 +55,8 @@ export default defineConfig(({ mode }) => {
     ],
 
     resolve: {
-      // Let tsconfigPaths handle aliases; keep common extensions for editor ergonomics
       extensions: [".mjs", ".js", ".ts", ".jsx", ".tsx", ".json"],
+      dedupe: ["react", "react-dom"], // Force single copy of React
     },
 
     server: {
@@ -64,7 +64,6 @@ export default defineConfig(({ mode }) => {
       strictPort: true,
       open: true,
       fs: {
-        // allow serving files from one level up to support monorepos if needed
         allow: [".."],
       },
       hmr: {
@@ -96,28 +95,9 @@ export default defineConfig(({ mode }) => {
         : undefined,
       rollupOptions: {
         output: {
-          // smarter vendor splitting: create vendor chunk for node_modules
-          manualChunks(id) {
-            // Only process node_modules
-            if (!id.includes("node_modules")) return;
-
-            // React and React-DOM must be together
-            if (id.includes("/react/") || id.includes("/react-dom/")) {
-              return "vendor-react";
-            }
-
-            // UI libraries
-            if (id.includes("/lucide-react/") || id.includes("/some-ui-lib/")) {
-              return "vendor-ui";
-            }
-
-            // Prop-types
-            if (id.includes("/prop-types/")) {
-              return "vendor-prop-types";
-            }
-
-            // Everything else from node_modules goes to vendor
-            return "vendor";
+          manualChunks: {
+            // Bundle React and all React-related packages together
+            "vendor-react": ["react", "react-dom", "react/jsx-runtime"],
           },
         },
       },
@@ -125,7 +105,7 @@ export default defineConfig(({ mode }) => {
     },
 
     optimizeDeps: {
-      include: ["react", "react-dom", "react-router-dom", "prop-types"],
+      include: ["react", "react-dom", "react/jsx-runtime"],
       esbuildOptions: {
         target: "es2020",
       },
