@@ -3,7 +3,7 @@ import { HydratedDocument } from "mongoose";
 
 export type ElectiveDocument = HydratedDocument<ElectiveModel>;
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: { createdAt: true, updatedAt: true } })
 export class ElectiveModel {
   @Prop({ required: true })
   code: string;

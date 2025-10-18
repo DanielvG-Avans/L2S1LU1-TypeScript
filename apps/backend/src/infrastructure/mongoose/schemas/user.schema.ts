@@ -4,7 +4,7 @@ import { ElectiveModel } from "./elective.schema";
 
 export type UserDocument = HydratedDocument<UserModel>;
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: { createdAt: true, updatedAt: true } })
 export class UserModel {
   @Prop({ required: true, trim: true, minlength: 1, maxlength: 100 })
   firstName: string;
