@@ -65,7 +65,7 @@ export const favoritesApi = {
    * Get all favorites for the current user
    */
   getAll: async (): Promise<Elective[]> => {
-    const response = await fetchBackend("/api/users/me/favorites");
+    const response = await fetchBackend("/api/students/me/favorites");
     if (!response.ok) {
       throw new Error(`Failed to fetch favorites: ${response.statusText}`);
     }
@@ -76,7 +76,7 @@ export const favoritesApi = {
    * Check if an elective is favorited
    */
   checkFavorite: async (electiveId: string): Promise<boolean> => {
-    const response = await fetchBackend(`/api/users/me/favorites/${electiveId}`);
+    const response = await fetchBackend(`/api/students/me/favorites/${electiveId}`);
     return response.ok;
   },
 
@@ -84,7 +84,7 @@ export const favoritesApi = {
    * Add an elective to favorites
    */
   add: async (electiveId: string): Promise<void> => {
-    const response = await fetchBackend("/api/users/me/favorites", {
+    const response = await fetchBackend("/api/students/me/favorites", {
       method: "POST",
       body: JSON.stringify({ electiveId }),
     });
@@ -97,7 +97,7 @@ export const favoritesApi = {
    * Remove an elective from favorites
    */
   remove: async (electiveId: string): Promise<void> => {
-    const response = await fetchBackend("/api/users/me/favorites", {
+    const response = await fetchBackend("/api/students/me/favorites", {
       method: "DELETE",
       body: JSON.stringify({ electiveId }),
     });
