@@ -79,7 +79,7 @@ export default defineConfig(({ mode }) => {
 
     build: {
       outDir: "dist",
-      emptyOutDir: true, // <- add this
+      emptyOutDir: true,
       sourcemap: !isProd,
       target: "es2020",
       minify: isProd ? "terser" : false,
@@ -98,10 +98,25 @@ export default defineConfig(({ mode }) => {
         output: {
           // smarter vendor splitting: create vendor chunk for node_modules
           manualChunks(id) {
+            // Only process node_modules
             if (!id.includes("node_modules")) return;
-            if (id.match(/react|react-dom/)) return "vendor-react";
-            if (id.match(/lucide-react|some-ui-lib/)) return "vendor-ui";
-            if (id.includes("prop-types")) return "vendor-prop-types";
+
+            // React and React-DOM must be together
+            if (id.includes("/react/") || id.includes("/react-dom/")) {
+              return "vendor-react";
+            }
+
+            // UI libraries
+            if (id.includes("/lucide-react/") || id.includes("/some-ui-lib/")) {
+              return "vendor-ui";
+            }
+
+            // Prop-types
+            if (id.includes("/prop-types/")) {
+              return "vendor-prop-types";
+            }
+
+            // Everything else from node_modules goes to vendor
             return "vendor";
           },
         },
