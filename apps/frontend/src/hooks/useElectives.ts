@@ -1,8 +1,8 @@
 // Custom hook for loading electives
 
-import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { fetchBackend } from "@/lib/fetch";
+import { electivesApi } from "@/services/api.service";
+import { useEffect, useState, useCallback } from "react";
 import type { Elective } from "@/types/Elective";
 
 export function useElectives() {
@@ -10,35 +10,39 @@ export function useElectives() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchElectives = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await electivesApi.getAll();
+      setElectives(data);
+    } catch (err: any) {
+      console.error(err);
+      const errorMessage = err?.message ?? "Kon modules niet laden";
+      setError(errorMessage);
+      toast.error(errorMessage, {
+        style: { background: "#ff4d4f", color: "white" },
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
 
     const load = async () => {
-      try {
-        setLoading(true);
-        const res = await fetchBackend("/api/electives");
-        if (!res.ok) throw new Error("Kon modules niet laden");
-        const data = (await res.json()) as Elective[];
-        if (!cancelled) setElectives(data);
-      } catch (err: any) {
-        console.error(err);
-        if (!cancelled) {
-          setError(err?.message ?? "Fout bij laden");
-          toast.error(err?.message ?? "Fout bij laden", {
-            style: { background: "#ff4d4f", color: "white" },
-          });
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+      await fetchElectives();
     };
 
-    load();
+    if (!cancelled) {
+      load();
+    }
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [fetchElectives]);
 
-  return { electives, loading, error };
+  return { electives, loading, error, refetch: fetchElectives };
 }
