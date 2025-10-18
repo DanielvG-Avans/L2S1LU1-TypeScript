@@ -1,10 +1,13 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { HydratedDocument, Types } from "mongoose";
-import { ElectiveModel } from "./elective.schema";
+import { HydratedDocument, Model } from "mongoose";
 
 export type UserDocument = HydratedDocument<UserModel>;
 
-@Schema({ timestamps: { createdAt: true, updatedAt: true } })
+@Schema({
+  timestamps: { createdAt: true, updatedAt: true },
+  discriminatorKey: "role",
+  collection: "users", // Explicit collection name
+})
 export class UserModel {
   @Prop({ required: true, trim: true, minlength: 1, maxlength: 100 })
   firstName: string;
@@ -21,14 +24,17 @@ export class UserModel {
   })
   email: string;
 
-  @Prop({ required: true, enum: ["student", "teacher", "admin"] })
-  role: string;
+  @Prop({
+    required: true,
+    enum: ["student", "teacher", "admin"],
+  })
+  role: "student" | "teacher" | "admin";
 
   @Prop({ required: true })
   passwordHash: string;
-
-  @Prop({ type: [{ type: Types.ObjectId, ref: "Elective" }], default: [] })
-  favorites: ElectiveModel[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(UserModel);
+
+// Type for discriminator models
+export type UserModelType = Model<UserDocument>;
