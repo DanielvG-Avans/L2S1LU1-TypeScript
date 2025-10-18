@@ -1,14 +1,15 @@
+import RecommendationsPage from "./pages/Recommendations/Recommendations";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import ElectiveDetailPage from "./pages/ElectiveDetails";
+import ElectiveDetailPage from "./pages//Electives/ElectiveDetails";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import ElectivesPage from "./pages/Electives/Electives";
 import { AuthLayout } from "@/layouts/AuthLayout";
+import ProfilePage from "@/pages/Auth/Profile";
 import { createRoot } from "react-dom/client";
-import ElectivesPage from "./pages/Electives";
+import LoginPage from "@/pages/Auth/Login";
 import { Layout } from "@/layouts/Layout";
-import ProfilePage from "@/pages/Profile";
 import NotFound from "@/pages/NotFound";
-import LoginPage from "@/pages/Login";
 import HomePage from "@/pages/Home";
 import { StrictMode } from "react";
 import "@/main.css";
@@ -39,6 +40,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <ElectiveDetailPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/recommendations",
+        element: (
+          <ProtectedRoute>
+            <RecommendationsPage />
           </ProtectedRoute>
         ),
       },
