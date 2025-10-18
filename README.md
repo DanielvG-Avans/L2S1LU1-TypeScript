@@ -1,6 +1,9 @@
 # 🎓 Proof of Concept
 
-Dit project is een Proof of Concept (PoC) voor een studie-informatiesysteem waarin studenten modules kunnen doorzoeken, filteren, bekijken en opslaan als favoriet. De focus ligt op een werkende basisapplicatie met frontend, backend en MongoDB als persistente databron.
+Dit project is een Proof of Concept (PoC) voor een studie-informatiesysteem
+waarin studenten modules kunnen doorzoeken, filteren, bekijken en opslaan als
+favoriet. De focus ligt op een werkende basisapplicatie met frontend, backend en
+een document database.
 
 ---
 
@@ -36,7 +39,7 @@ De PoC bevat de volgende user stories:
 
 1. Frontend & Backend
    - Gecodeerd in TypeScript.
-   - Frontend: component-based (bijv. React / Next.js / Vue).
+   - Frontend: component-based.
    - Backend: opgezet volgens Onion Architecture.
 2. Versiebeheer
    - Frontend en backend in Git.
@@ -54,44 +57,16 @@ De PoC bevat de volgende user stories:
    - Minimaal 5 systeemtesten.
    - Testplan incl. traceability matrix naar functionele requirements.
 7. Data & validatie
-   - MongoDB online, toegankelijk via Compass.
+   - Document database online.
    - Data persistent met get/create/update-acties.
    - Inputvalidatie in frontend én backend.
 
 ---
 
-## 📦 Data model (voorbeeld)
-
-```json
-{
-  "id": "12345",
-  "naam": "Data Science Basics",
-  "beschrijving": "Introductie tot data-analyse en machine learning.",
-  "ec": 15,
-  "niveau": "NLQF-5",
-  "type": "verdiepend",
-  "thema": "Informatica"
-}
-```
-
-## 🖥 Voorbeeld flow
-
-1. Student opent de applicatie → ziet lijst met modules.
-2. Student zoekt via zoekbalk of filtert modules.
-3. Student klikt op een module → detailpagina met info.
-4. Student klikt op ❤️ → module toegevoegd aan favorieten.
-5. Student kan favorietenlijst bekijken en beheren.
-
-## 🚀 Extra opties (toekomst)
-
-- Aanbevelingen op basis van interesses.
-- PWA-support (offline gebruik + installatie).
-- Dark mode en toegankelijkheidsopties.
-- Chatbot FAQ / studieadviseur-knop.
-
 ## 📋 Belangrijk
 
-Dit project is een Proof of Concept. De scope is bewust beperkt tot zoeken, filteren, detailpagina en favorieten met persistente data in MongoDB.
+Dit project is een Proof of Concept. De scope is bewust beperkt tot zoeken,
+filteren, detailpagina en favorieten met persistente data in MongoDB.
 
 ## 👨‍💻 Auteur
 
