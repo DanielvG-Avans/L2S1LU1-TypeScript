@@ -1,9 +1,8 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Types } from "mongoose";
-import { UserModel } from "./user.schema";
 
 @Schema()
-export class TeacherModel extends UserModel {
+export class TeacherModel {
   @Prop({ type: [{ type: Types.ObjectId, ref: "Elective" }], default: [] })
   modulesGiven: Types.ObjectId[];
 }
