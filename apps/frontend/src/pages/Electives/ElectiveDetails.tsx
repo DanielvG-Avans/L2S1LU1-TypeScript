@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useMemo, useCallback } from "react";
 import ProviderBadge from "@/components/elective/ProviderBadge";
+import { RoleProtected } from "@/components/auth/RoleProtected";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -126,16 +127,19 @@ const ElectiveDetailPage = () => {
 
       {/* Footer Actions */}
       <div className="flex justify-end pt-4 gap-2">
-        <Button
-          variant={isFavorited ? "destructive" : "outline"}
-          onClick={toggleFavorite}
-          disabled={favoriteLoading}
-          className={`rounded-xl border-border/50 hover:border-primary/50 transition-all ${
-            favoriteLoading ? "animate-pulse" : ""
-          }`}
-        >
-          {isFavorited ? "★ Favorited" : "☆ Add to Favorites"}
-        </Button>
+        {/* Only students can add to favorites */}
+        <RoleProtected allowedRoles="student">
+          <Button
+            variant={isFavorited ? "destructive" : "outline"}
+            onClick={toggleFavorite}
+            disabled={favoriteLoading}
+            className={`rounded-xl border-border/50 hover:border-primary/50 transition-all ${
+              favoriteLoading ? "animate-pulse" : ""
+            }`}
+          >
+            {isFavorited ? "★ Favorited" : "☆ Add to Favorites"}
+          </Button>
+        </RoleProtected>
 
         <Button
           variant="outline"
