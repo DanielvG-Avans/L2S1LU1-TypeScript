@@ -6,19 +6,28 @@ export type UserDocument = HydratedDocument<UserModel>;
 
 @Schema({ timestamps: true })
 export class UserModel {
-  @Prop()
+  @Prop({ required: true, trim: true, minlength: 1, maxlength: 100 })
   firstName: string;
 
-  @Prop()
+  @Prop({ required: true, trim: true, minlength: 1, maxlength: 100 })
   lastName: string;
 
-  @Prop({ unique: true })
+  @Prop({
+    required: true,
+    unique: true,
+    lowercase: true,
+    trim: true,
+    match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  })
   email: string;
 
-  @Prop()
+  @Prop({ required: true, enum: ["student", "teacher", "admin"] })
+  role: string;
+
+  @Prop({ required: true })
   passwordHash: string;
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: "Elective" }] })
+  @Prop({ type: [{ type: Types.ObjectId, ref: "Elective" }], default: [] })
   favorites: ElectiveModel[];
 }
 
