@@ -13,7 +13,8 @@
     "api",
     "nestjs-framework",
     "mongodb",
-    "mongoose"
+    "mongoose",
+    "cosmosdb"
   ],
   "scripts": {
     "build": "nest build",
