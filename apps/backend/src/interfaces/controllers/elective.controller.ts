@@ -1,4 +1,5 @@
 import { type IElectiveService } from "src/application/ports/elective.port";
+import { type ITeacherService } from "src/application/ports/teacher.port";
 import { type Elective } from "src/domain/elective/elective";
 import { AuthGuard } from "../guards/auth.guard";
 import { RolesGuard } from "../guards/roles.guard";
@@ -7,6 +8,7 @@ import { ApiTags } from "@nestjs/swagger";
 import { SERVICES } from "src/di-tokens";
 import {
   NotFoundException,
+  BadRequestException,
   HttpStatus,
   Controller,
   UseGuards,
@@ -31,6 +33,8 @@ export class ElectiveController {
   constructor(
     @Inject(SERVICES.ELECTIVE)
     private readonly electiveService: IElectiveService,
+    @Inject(SERVICES.TEACHER)
+    private readonly teacherService: ITeacherService,
   ) {}
 
   @Post()
@@ -108,5 +112,43 @@ export class ElectiveController {
       this.logger.warn(`Failed to delete elective: ${result.error.code}`);
       throw new NotFoundException(result.error.message || "Failed to delete elective");
     }
+  }
+
+  @Post(":id/teachers/:teacherId")
+  @Roles("admin")
+  @HttpCode(HttpStatus.OK)
+  public async assignTeacherToElective(
+    @Param("id") electiveId: string,
+    @Param("teacherId") teacherId: string,
+  ): Promise<{ message: string }> {
+    const result = await this.teacherService.assignElectiveToTeacher(teacherId, electiveId);
+    if (!result.ok) {
+      this.logger.warn(`Failed to assign teacher: ${result.error.code}`);
+      if (result.error.code === "ALREADY_ASSIGNED") {
+        throw new BadRequestException(result.error.message || "Teacher already assigned");
+      }
+      throw new NotFoundException(result.error.message || "Failed to assign teacher");
+    }
+
+    return { message: "Teacher assigned successfully" };
+  }
+
+  @Delete(":id/teachers/:teacherId")
+  @Roles("admin")
+  @HttpCode(HttpStatus.OK)
+  public async unassignTeacherFromElective(
+    @Param("id") electiveId: string,
+    @Param("teacherId") teacherId: string,
+  ): Promise<{ message: string }> {
+    const result = await this.teacherService.unassignElectiveFromTeacher(teacherId, electiveId);
+    if (!result.ok) {
+      this.logger.warn(`Failed to unassign teacher: ${result.error.code}`);
+      if (result.error.code === "NOT_ASSIGNED") {
+        throw new BadRequestException(result.error.message || "Teacher not assigned");
+      }
+      throw new NotFoundException(result.error.message || "Failed to unassign teacher");
+    }
+
+    return { message: "Teacher unassigned successfully" };
   }
 }
