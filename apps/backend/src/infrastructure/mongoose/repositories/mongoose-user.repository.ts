@@ -2,6 +2,7 @@ import { IUserRepository } from "../../../domain/user/user.repository.interface"
 import { UserModel, type UserDocument } from "../schemas/user.schema";
 import { StudentSchema } from "../schemas/student.schema";
 import { TeacherSchema } from "../schemas/teacher.schema";
+import { AdminSchema } from "../schemas/admin.schema";
 import { User, StudentUser, TeacherUser, AdminUser } from "../../../domain/user/user";
 import { InjectModel } from "@nestjs/mongoose";
 import { Injectable, OnModuleInit } from "@nestjs/common";
@@ -11,6 +12,7 @@ import { Model, Types } from "mongoose";
 export class MongooseUserRepository implements IUserRepository, OnModuleInit {
   private studentModel: Model<any>;
   private teacherModel: Model<any>;
+  private adminModel: Model<any>;
 
   constructor(@InjectModel("User") private readonly model: Model<UserDocument>) {}
 
@@ -27,6 +29,12 @@ export class MongooseUserRepository implements IUserRepository, OnModuleInit {
       this.teacherModel = this.model.discriminator("teacher", TeacherSchema);
     } else {
       this.teacherModel = this.model.discriminators["teacher"];
+    }
+
+    if (!this.model.discriminators || !this.model.discriminators["admin"]) {
+      this.adminModel = this.model.discriminator("admin", AdminSchema);
+    } else {
+      this.adminModel = this.model.discriminators["admin"];
     }
   }
 
