@@ -1,8 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
-import { electivesApi } from "@/services/api.service";
+import { electivesApi, userApi } from "@/services/api.service";
 import { useElectives } from "@/hooks/useElectives";
 import type { Elective } from "@/types/Elective";
+import type { TeacherUser } from "@/types/User";
 import {
   Dialog,
   DialogContent,
@@ -39,6 +40,7 @@ interface ElectiveFormData {
   location: string;
   level: string;
   tags: string;
+  teacherIds: string[];
 }
 
 const initialFormData: ElectiveFormData = {
@@ -53,6 +55,7 @@ const initialFormData: ElectiveFormData = {
   location: "",
   level: "",
   tags: "",
+  teacherIds: [],
 };
 
 export default function ElectiveCreateDialog({
@@ -62,9 +65,32 @@ export default function ElectiveCreateDialog({
 }: ElectiveCreateDialogProps) {
   const [formData, setFormData] = useState<ElectiveFormData>(initialFormData);
   const [loading, setLoading] = useState(false);
+  const [teachers, setTeachers] = useState<TeacherUser[]>([]);
+  const [loadingTeachers, setLoadingTeachers] = useState(false);
 
   // Fetch existing electives to get unique values for dropdowns
   const { electives } = useElectives();
+
+  // Fetch all teachers for assignment
+  useEffect(() => {
+    const fetchTeachers = async () => {
+      setLoadingTeachers(true);
+      try {
+        const users = await userApi.getAll();
+        const teacherUsers = users.filter((user): user is TeacherUser => user.role === "teacher");
+        setTeachers(teacherUsers);
+      } catch (error) {
+        console.error("Failed to fetch teachers:", error);
+        toast.error("Failed to load teachers");
+      } finally {
+        setLoadingTeachers(false);
+      }
+    };
+
+    if (open) {
+      fetchTeachers();
+    }
+  }, [open]);
 
   // Helper to get unique values from existing electives
   const getUniqueValues = useMemo(() => {
@@ -129,7 +155,23 @@ export default function ElectiveCreateDialog({
         tags: formData.tags ? formData.tags.split(",").map((tag) => tag.trim()) : undefined,
       };
 
-      await electivesApi.create(electiveData);
+      // Create the elective
+      const createdElective = await electivesApi.create(electiveData);
+      
+      // Assign teachers to the elective
+      if (formData.teacherIds.length > 0 && createdElective.id) {
+        const assignmentPromises = formData.teacherIds.map((teacherId) =>
+          electivesApi.assignTeacher(createdElective.id!, teacherId)
+        );
+        
+        try {
+          await Promise.all(assignmentPromises);
+        } catch (assignError) {
+          console.error("Failed to assign some teachers:", assignError);
+          toast.warning("Elective created but some teachers could not be assigned");
+        }
+      }
+
       toast.success("Elective created successfully!");
 
       // Reset form and close dialog
@@ -368,6 +410,55 @@ export default function ElectiveCreateDialog({
               onChange={(e) => handleChange("tags", e.target.value)}
               placeholder="e.g., programming, web, frontend"
             />
+          </div>
+
+          {/* Teachers */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              Teachers <span className="text-muted-foreground">(optional)</span>
+            </label>
+            <div className="border border-input rounded-md p-3 max-h-48 overflow-y-auto bg-background">
+              {loadingTeachers ? (
+                <p className="text-sm text-muted-foreground">Loading teachers...</p>
+              ) : teachers.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No teachers available</p>
+              ) : (
+                <div className="space-y-2">
+                  {teachers.map((teacher) => (
+                    <label
+                      key={teacher.id}
+                      className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-2 rounded"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formData.teacherIds.includes(teacher.id!)}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setFormData((prev) => ({
+                            ...prev,
+                            teacherIds: checked
+                              ? [...prev.teacherIds, teacher.id!]
+                              : prev.teacherIds.filter((id) => id !== teacher.id),
+                          }));
+                        }}
+                        className="h-4 w-4 rounded border-input"
+                      />
+                      <span className="text-sm">
+                        {teacher.firstName} {teacher.lastName}
+                      </span>
+                      <span className="text-xs text-muted-foreground ml-auto">
+                        {teacher.email}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+            {formData.teacherIds.length > 0 && (
+              <p className="text-xs text-muted-foreground">
+                {formData.teacherIds.length} teacher(s) selected
+              </p>
+            )}
           </div>
 
           <DialogFooter>
