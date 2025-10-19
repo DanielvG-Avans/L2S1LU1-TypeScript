@@ -31,6 +31,18 @@ export class ElectiveController {
     private readonly electiveService: IElectiveService,
   ) {}
 
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  public async createElective(@Body() data: Elective): Promise<Elective> {
+    const result = await this.electiveService.createElective(data);
+    if (!result.ok) {
+      this.logger.warn(`Failed to create elective: ${result.error.code}`);
+      throw new NotFoundException(result.error.message || "Failed to create elective");
+    }
+
+    return result.data;
+  }
+
   @Get()
   @HttpCode(HttpStatus.OK)
   public async getAll(): Promise<Elective[]> {
@@ -50,18 +62,6 @@ export class ElectiveController {
     if (!result.ok) {
       this.logger.warn(`Elective not found: ${id}`);
       throw new NotFoundException(result.error.message || "Elective not found");
-    }
-
-    return result.data;
-  }
-
-  @Post()
-  @HttpCode(HttpStatus.CREATED)
-  public async createElective(@Body() data: Elective): Promise<Elective> {
-    const result = await this.electiveService.createElective(data);
-    if (!result.ok) {
-      this.logger.warn(`Failed to create elective: ${result.error.code}`);
-      throw new NotFoundException(result.error.message || "Failed to create elective");
     }
 
     return result.data;
@@ -94,8 +94,8 @@ export class ElectiveController {
     return result.data;
   }
 
-  @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
   public async deleteElective(@Param("id") id: string): Promise<void> {
     const result = await this.electiveService.deleteElective(id);
     if (!result.ok) {
