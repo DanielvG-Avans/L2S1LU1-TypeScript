@@ -4,6 +4,7 @@ import { REPOSITORIES } from "../../di-tokens";
 import { Injectable, Inject, Logger } from "@nestjs/common";
 import { type IUserRepository } from "../../domain/user/user.repository.interface";
 import { Result, ok, err } from "../../domain/result";
+import { PasswordUtil } from "../utils/password.util";
 
 //* User Service Implementation
 @Injectable()
@@ -34,11 +35,30 @@ export class UserService implements IUserService {
     return ok(user);
   }
 
+  public async getAllUsers(): Promise<Result<User[]>> {
+    const users = await this.userRepo.find();
+    if (!users) {
+      this.logger.error("Failed to fetch all users");
+      return err("USERS_FETCH_FAILED", "Failed to fetch users");
+    }
+    return ok(users);
+  }
+
   public async createUser(data: User): Promise<Result<User>> {
     if (!data) {
       this.logger.warn("No user data provided for creation");
       return err("NO_USER_DATA", "No user data provided");
     }
+
+    if (await this.userRepo.findByEmail(data.email)) {
+      this.logger.warn(`User with email ${data.email} already exists`);
+      return err("USER_ALREADY_EXISTS", "User with this email already exists", {
+        email: data.email,
+      });
+    }
+
+    // Hash the password before saving using centralized PasswordUtil
+    data.passwordHash = await PasswordUtil.hash(data.passwordHash);
 
     const created = await this.userRepo.create(data);
     if (!created) {
