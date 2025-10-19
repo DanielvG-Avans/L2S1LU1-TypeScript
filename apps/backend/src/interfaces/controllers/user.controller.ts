@@ -55,6 +55,15 @@ export class UserController {
   }
 
   /**
+   * Convert domain User entity to DTO (removes sensitive fields like passwordHash)
+   */
+  private toDTO(user: User): userDTO {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-unsafe-assignment
+    const { passwordHash, ...safeUser } = user as any;
+    return safeUser as userDTO;
+  }
+
+  /**
    * Get the authenticated user's profile
    * Available to all authenticated users
    */
@@ -69,7 +78,7 @@ export class UserController {
       throw new UnauthorizedException("User not found");
     }
 
-    return userResult.data;
+    return this.toDTO(userResult.data);
   }
 
   /**
@@ -86,7 +95,7 @@ export class UserController {
       throw new NotFoundException(result.error.message || "Failed to get users");
     }
 
-    return result.data;
+    return result.data.map((user) => this.toDTO(user));
   }
 
   /**
@@ -142,7 +151,7 @@ export class UserController {
       throw new BadRequestException(result.error.message || "Failed to create user");
     }
 
-    return result.data;
+    return this.toDTO(result.data);
   }
 
   /**
@@ -166,7 +175,7 @@ export class UserController {
       throw new BadRequestException(result.error.message || "Failed to update user");
     }
 
-    return result.data;
+    return this.toDTO(result.data);
   }
 
   /**
