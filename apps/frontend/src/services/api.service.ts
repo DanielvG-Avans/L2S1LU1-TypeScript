@@ -150,6 +150,30 @@ export const electivesApi = {
     }
     return (await response.json()) as Elective;
   },
+
+  /**
+   * Assign a teacher to an elective (admin only)
+   */
+  assignTeacher: async (electiveId: string, teacherId: string): Promise<void> => {
+    const response = await fetchBackend(`/api/electives/${electiveId}/teachers/${teacherId}`, {
+      method: "POST",
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to assign teacher: ${response.statusText}`);
+    }
+  },
+
+  /**
+   * Unassign a teacher from an elective (admin only)
+   */
+  unassignTeacher: async (electiveId: string, teacherId: string): Promise<void> => {
+    const response = await fetchBackend(`/api/electives/${electiveId}/teachers/${teacherId}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to unassign teacher: ${response.statusText}`);
+    }
+  },
 };
 
 // ============================================
