@@ -72,7 +72,24 @@ export class MongooseUserRepository implements IUserRepository, OnModuleInit {
 
   public async update(id: string, data: Partial<User> | User): Promise<User | null> {
     if (!Types.ObjectId.isValid(id)) return null;
-    const updated = (await this.model
+
+    // Determine which model to use based on the role or existing document
+    let modelToUse = this.model;
+    if ("role" in data && data.role) {
+      if (data.role === "student") modelToUse = this.studentModel;
+      else if (data.role === "teacher") modelToUse = this.teacherModel;
+      else if (data.role === "admin") modelToUse = this.adminModel;
+    } else {
+      // If role not in data, fetch existing document to determine type
+      const existing = await this.model.findById(id).lean().exec();
+      if (existing) {
+        if (existing.role === "student") modelToUse = this.studentModel;
+        else if (existing.role === "teacher") modelToUse = this.teacherModel;
+        else if (existing.role === "admin") modelToUse = this.adminModel;
+      }
+    }
+
+    const updated = (await modelToUse
       .findByIdAndUpdate(id, data as Partial<UserModel>, {
         new: true,
         runValidators: true,
