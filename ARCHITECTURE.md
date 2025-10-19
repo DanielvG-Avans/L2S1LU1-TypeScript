@@ -2,51 +2,650 @@
 
 ## Overview
 
-This project follows **Clean Architecture** principles with clear separation
-between layers and **Domain-Driven Design** for role-based user management.
+This project is a **full-stack TypeScript application** for managing student
+electives at Avans University. It follows **Clean Architecture** (Onion
+Architecture) principles with clear separation between layers and
+**Domain-Driven Design** for role-based user management.
+
+The system consists of three main components:
+
+- **Frontend**: React SPA with TypeScript
+- **Backend**: NestJS REST API with TypeScript
+- **Database**: MongoDB / Cosmos DB (NoSQL document database)
 
 ---
 
-## 📐 Architectural Layers
+## 🎯 System Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     Presentation Layer                       │
-│                  (Controllers & Guards)                      │
-│  ┌────────────────────────────────────────────────────────┐ │
-│  │  UserController (consolidated REST API endpoints)      │ │
-│  │  AuthController, ElectiveController                    │ │
-│  └────────────────────────────────────────────────────────┘ │
-└───────────────────────────┬─────────────────────────────────┘
-                            │
-┌───────────────────────────▼─────────────────────────────────┐
-│                     Application Layer                        │
-│                  (Services & Use Cases)                      │
-│  ┌────────────────┬──────────────────┬───────────────────┐ │
-│  │  UserService   │ StudentService   │  TeacherService   │ │
-│  │  (CRUD ops)    │ (Student logic)  │  (Teacher logic)  │ │
-│  └────────────────┴──────────────────┴───────────────────┘ │
-└───────────────────────────┬─────────────────────────────────┘
-                            │
-┌───────────────────────────▼─────────────────────────────────┐
-│                       Domain Layer                           │
-│              (Entities & Business Rules)                     │
-│  ┌────────────────────────────────────────────────────────┐ │
-│  │  User (Discriminated Union)                            │ │
-│  │  ├─ StudentUser  ├─ TeacherUser  ├─ AdminUser        │ │
-│  │  Elective, Result<T>                                   │ │
-│  └────────────────────────────────────────────────────────┘ │
-└───────────────────────────┬─────────────────────────────────┘
-                            │
-┌───────────────────────────▼─────────────────────────────────┐
-│                   Infrastructure Layer                       │
-│               (Database & External Systems)                  │
-│  ┌────────────────────────────────────────────────────────┐ │
-│  │  MongooseUserRepository                                │ │
-│  │  (Single collection with discriminators)              │ │
-│  └────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                         FRONTEND (SPA)                          │
+│                    React + TypeScript + Vite                    │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  • React Router for navigation                           │  │
+│  │  • Tailwind CSS + shadcn/ui components                   │  │
+│  │  • JWT-based authentication (HTTP-only cookies)          │  │
+│  │  • Role-based access control (Student, Teacher, Admin)   │  │
+│  │  • Custom hooks for data fetching & state management    │  │
+│  └──────────────────────────────────────────────────────────┘  │
+└────────────────────────┬────────────────────────────────────────┘
+                         │ HTTPS/REST API
+                         │ (JSON + JWT Cookies)
+┌────────────────────────▼────────────────────────────────────────┐
+│                      BACKEND (REST API)                         │
+│                     NestJS + TypeScript                         │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │                  Clean Architecture Layers                │  │
+│  │  ┌────────────────────────────────────────────────────┐  │  │
+│  │  │  Interfaces Layer (Controllers, DTOs, Guards)     │  │  │
+│  │  └──────────────────┬─────────────────────────────────┘  │  │
+│  │  ┌──────────────────▼─────────────────────────────────┐  │  │
+│  │  │  Application Layer (Services, Ports, Use Cases)   │  │  │
+│  │  └──────────────────┬─────────────────────────────────┘  │  │
+│  │  ┌──────────────────▼─────────────────────────────────┐  │  │
+│  │  │  Domain Layer (Entities, Business Rules)          │  │  │
+│  │  └──────────────────┬─────────────────────────────────┘  │  │
+│  │  ┌──────────────────▼─────────────────────────────────┐  │  │
+│  │  │  Infrastructure Layer (Mongoose, Repositories)    │  │  │
+│  │  └────────────────────────────────────────────────────┘  │  │
+│  └──────────────────────────────────────────────────────────┘  │
+└────────────────────────┬────────────────────────────────────────┘
+                         │ Mongoose ODM
+                         │ (TCP Connection)
+┌────────────────────────▼────────────────────────────────────────┐
+│                       DATABASE (NoSQL)                          │
+│                          MongoDB / Cosmos DB                    │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  Collections:                                            │  │
+│  │  • users (with role discriminator)                       │  │
+│  │    - StudentUser (with favorites array)                  │  │
+│  │    - TeacherUser                                         │  │
+│  │    - AdminUser                                           │  │
+│  │  • electives (course/module information)                 │  │
+│  └──────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 🖥️ Frontend Architecture
+
+### Technology Stack
+
+- **Framework**: React 19.1.1
+- **Language**: TypeScript 5.9.3
+- **Build Tool**: Vite 7.1.7
+- **Styling**: Tailwind CSS 4.1.14 + shadcn/ui components
+- **Routing**: React Router DOM 7.9.4
+- **State Management**: React hooks + custom hooks
+- **Form Handling**: React Hook Form 7.65.0 + Zod validation
+- **HTTP Client**: Native fetch API with custom wrapper
+
+### Project Structure
+
+```
+frontend/
+├── src/
+│   ├── main.tsx              # Application entry point & router config
+│   ├── main.css              # Global styles & Tailwind imports
+│   ├── components/           # Reusable UI components
+│   │   ├── auth/            # Authentication components
+│   │   │   ├── ProtectedRoute.tsx
+│   │   │   ├── RoleProtected.tsx
+│   │   │   └── RoleProtectedRoute.tsx
+│   │   ├── elective/        # Elective-related components
+│   │   ├── recommendations/ # Recommendation wizard
+│   │   ├── users/           # User management components
+│   │   └── ui/              # shadcn/ui base components
+│   ├── pages/               # Page components (route views)
+│   │   ├── Home.tsx
+│   │   ├── Auth/            # Login, Profile
+│   │   ├── Electives/       # Browse & detail pages
+│   │   ├── Recommendations/ # Recommendation wizard page
+│   │   └── Admin/           # Admin dashboard & user management
+│   ├── hooks/               # Custom React hooks
+│   │   ├── useAuth.ts       # Authentication state & actions
+│   │   ├── useElective.ts   # Single elective data
+│   │   ├── useElectives.ts  # Electives list with filtering
+│   │   ├── useFavorites.ts  # Favorite management
+│   │   └── useUser.ts       # User profile data
+│   ├── services/
+│   │   └── api.service.ts   # API endpoints configuration
+│   ├── lib/
+│   │   ├── fetch.ts         # Fetch wrapper with auth handling
+│   │   └── utils.ts         # Utility functions
+│   ├── types/               # TypeScript type definitions
+│   │   ├── Auth.d.ts        # Auth & user types
+│   │   ├── Elective.d.ts    # Elective types
+│   │   └── User.d.ts        # User-related types
+│   └── layouts/             # Layout wrappers
+│       ├── Layout.tsx       # Main app layout
+│       └── AuthLayout.tsx   # Authentication pages layout
+├── public/                   # Static assets
+├── index.html               # HTML entry point
+├── vite.config.ts           # Vite configuration
+└── tailwind.config.ts       # Tailwind CSS configuration
+```
+
+### Key Features
+
+- **Authentication**: JWT tokens stored in HTTP-only cookies
+- **Role-Based Access Control**: Student, Teacher, Admin roles
+- **Protected Routes**: Route guards for authenticated & role-specific pages
+- **Responsive Design**: Mobile-first approach with Tailwind CSS
+- **Dark Mode**: Theme toggle support with next-themes
+- **Form Validation**: Type-safe forms with Zod schemas
+- **Error Handling**: Centralized error states & loading indicators
+
+### Environment Variables
+
+```bash
+VITE_BACKEND_URL=     # Backend API URL
+VITE_BASE=            # Base path for routing
+VITE_APP_NAME=        # Application name
+VITE_PORT=            # Development server port
+APP_ENV=              # Environment (development/production)
+```
+
+---
+
+## 🔧 Backend Architecture
+
+### Technology Stack
+
+- **Framework**: NestJS 11.0.1
+- **Language**: TypeScript 5.7.3
+- **Runtime**: Node.js
+- **Database ORM**: Mongoose 8.19.0
+- **Authentication**: @nestjs/jwt 11.0.1 + bcrypt 6.0.0
+- **Validation**: Class-validator & DTOs
+- **API Documentation**: Swagger (development only)
+
+### Clean Architecture Layers
+
+#### 1. **Interfaces Layer** (Presentation)
+
+```
+interfaces/
+├── controllers/           # HTTP request handlers
+│   ├── auth.controller.ts    # Login, logout endpoints
+│   ├── user.controller.ts    # User CRUD operations
+│   └── elective.controller.ts # Elective endpoints
+├── guards/                # Route protection
+│   ├── auth.guard.ts         # JWT authentication
+│   └── roles.guard.ts        # Role-based authorization
+├── decorators/
+│   └── roles.decorator.ts    # @Roles() decorator
+└── dtos/                  # Data Transfer Objects
+    ├── login.dto.ts
+    ├── user.dto.ts
+    └── favorites.dto.ts
+```
+
+#### 2. **Application Layer** (Business Logic)
+
+```
+application/
+├── services/              # Use case implementations
+│   ├── auth.service.ts       # Authentication logic
+│   ├── user.service.ts       # User management
+│   ├── student.service.ts    # Student-specific logic
+│   ├── teacher.service.ts    # Teacher-specific logic
+│   └── elective.service.ts   # Elective management
+├── ports/                 # Interface definitions
+│   ├── auth.port.ts
+│   ├── user.port.ts
+│   ├── student.port.ts
+│   ├── teacher.port.ts
+│   └── elective.port.ts
+└── utils/
+    ├── password.util.ts      # Password hashing
+    └── id-normalizer.util.ts # ID normalization
+```
+
+#### 3. **Domain Layer** (Core Business Entities)
+
+```
+domain/
+├── user/
+│   ├── user.ts                  # User entity (discriminated union)
+│   │   ├── StudentUser         # role: "student" + favorites[]
+│   │   ├── TeacherUser         # role: "teacher"
+│   │   └── AdminUser           # role: "admin"
+│   └── user.repository.interface.ts
+├── elective/
+│   ├── elective.ts             # Elective entity
+│   └── elective.repository.interface.ts
+└── result.ts                   # Result<T> type for error handling
+```
+
+**User Domain Model** (Discriminated Union):
+
+```typescript
+export type User = StudentUser | TeacherUser | AdminUser;
+
+interface StudentUser extends BaseUser {
+  role: "student";
+  favorites: string[]; // Array of elective IDs
+}
+
+interface TeacherUser extends BaseUser {
+  role: "teacher";
+}
+
+interface AdminUser extends BaseUser {
+  role: "admin";
+}
+```
+
+#### 4. **Infrastructure Layer** (External Integrations)
+
+```
+infrastructure/
+└── mongoose/
+    ├── schemas/              # Mongoose schemas
+    │   ├── user.schema.ts       # User schema with discriminator
+    │   ├── student.schema.ts
+    │   ├── teacher.schema.ts
+    │   └── elective.schema.ts
+    └── repositories/         # Repository implementations
+        ├── mongoose-user.repository.ts
+        └── mongoose-elective.repository.ts
+```
+
+### Dependency Injection
+
+```typescript
+// di-tokens.ts
+export const REPOSITORIES = {
+  USER: Symbol("IUserRepository"),
+  ELECTIVE: Symbol("IElectiveRepository"),
+};
+```
+
+### API Structure
+
+- **Base Path**: `/api`
+- **Versioning**: Header-based (`X-API-Version: 1`)
+- **Authentication**: JWT tokens in HTTP-only cookies
+- **CORS**: Configurable via `CORS_ORIGIN` environment variable
+
+### Environment Variables
+
+```bash
+NODE_ENV=              # development | production | test
+PORT=                  # API server port (e.g., 3000)
+LOG_LEVEL=             # trace | debug | info | warn | error
+DATABASE_URL=          # MongoDB connection string
+JWT_SECRET=            # Secret for JWT signing
+CORS_ORIGIN=           # Allowed frontend origin(s)
+```
+
+---
+
+## 🗄️ Database Architecture
+
+### Database Type
+
+**MongoDB** - NoSQL document database
+
+### Connection
+
+- **ODM**: Mongoose 8.19.0
+- **Connection String**: Configured via `DATABASE_URL` environment variable
+- **Format**: `mongodb://[user:pass@]host:port/database[?options]`
+
+### Collections
+
+#### 1. **users** Collection
+
+Single collection with role-based discriminator pattern.
+
+**Schema**:
+
+```typescript
+{
+  _id: ObjectId,
+  firstName: string,
+  lastName: string,
+  email: string (unique),
+  passwordHash: string,
+  role: "student" | "teacher" | "admin",  // Discriminator
+
+  // Student-specific fields
+  favorites?: ObjectId[],  // References to electives
+
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+**Indexes**:
+
+- `email` (unique)
+- `role` (for filtered queries)
+
+**Discriminator Pattern**:
+
+- Base schema: `User`
+- Discriminators: `StudentUser`, `TeacherUser`, `AdminUser`
+- All stored in same collection with `__t` field
+
+#### 2. **electives** Collection
+
+Stores course/module information.
+
+**Schema**:
+
+```typescript
+{
+  _id: ObjectId,
+  code: string (unique),
+  name: string,
+  description: string,
+  provider: string,        // e.g., "Technische Bedrijfskunde"
+  period: string,          // e.g., "P3"
+  duration: string,        // e.g., "1 Periode"
+  credits: number,         // e.g., 15 or 30
+  language: string,        // "Nederlands" or "Engels"
+  location: string,        // e.g., "Breda"
+  level: string,           // e.g., "NLQF5" or "NLQF6"
+  tags: string[],          // For filtering/recommendations
+  teachers: ObjectId[],    // References to User (teachers)
+
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+**Indexes**:
+
+- `code` (unique)
+- `name` (text index for search)
+- `credits`, `level`, `tags` (for filtering)
+
+### Relationships
+
+- **Many-to-Many**: Students ↔ Electives (via `favorites` array in StudentUser)
+- **Many-to-Many**: Teachers ↔ Electives (via `teachers` array in Elective)
+
+---
+
+## 🔐 Security Architecture
+
+### Authentication Flow
+
+```
+1. User submits credentials → POST /api/auth/login
+2. Backend validates credentials (bcrypt password comparison)
+3. Backend generates JWT token
+4. Token stored in HTTP-only cookie (secure, sameSite: strict)
+5. Frontend includes cookie automatically in subsequent requests
+6. Backend validates JWT on protected routes via AuthGuard
+```
+
+### Authorization
+
+- **Guards**: `AuthGuard` (authentication) + `RolesGuard` (authorization)
+- **Decorators**: `@Roles('admin', 'teacher')` on controller methods
+- **Frontend**: `ProtectedRoute` and `RoleProtectedRoute` components
+
+### Password Security
+
+- **Hashing**: bcrypt with salt rounds
+- **Storage**: Only hashed passwords stored in database
+- **Validation**: Password requirements enforced via DTOs
+
+### CORS Configuration
+
+- **Origin**: Configurable via environment variable
+- **Credentials**: Enabled for cookie-based auth
+- **Methods**: GET, POST, PUT, PATCH, DELETE
+
+---
+
+## 📊 Data Flow
+
+### Example: Student Adds Elective to Favorites
+
+```
+┌─────────────┐
+│   Frontend  │
+│  (Student)  │
+└──────┬──────┘
+       │ 1. User clicks "Add to Favorites"
+       │
+       ▼
+┌─────────────────────────────────────┐
+│  POST /api/users/me/favorites       │
+│  Body: { electiveId: "..." }       │
+│  Cookie: JWT token                  │
+└──────┬──────────────────────────────┘
+       │ 2. AuthGuard validates JWT
+       │
+       ▼
+┌─────────────────────────────────────┐
+│  UserController.addFavorite()       │
+│  Extracts user ID from JWT          │
+└──────┬──────────────────────────────┘
+       │ 3. Calls service
+       │
+       ▼
+┌─────────────────────────────────────┐
+│  StudentService.addFavorite()       │
+│  Business logic validation          │
+└──────┬──────────────────────────────┘
+       │ 4. Repository call
+       │
+       ▼
+┌─────────────────────────────────────┐
+│  MongooseUserRepository              │
+│  Updates user document              │
+└──────┬──────────────────────────────┘
+       │ 5. MongoDB update
+       │
+       ▼
+┌─────────────────────────────────────┐
+│  MongoDB                             │
+│  db.users.updateOne(                │
+│    { _id: userId },                 │
+│    { $addToSet: { favorites } }     │
+│  )                                  │
+└──────┬──────────────────────────────┘
+       │ 6. Success response
+       │
+       ▼
+┌─────────────┐
+│   Frontend  │
+│  UI updates │
+└─────────────┘
+```
+
+---
+
+## 🚀 Deployment Architecture
+
+### Frontend Deployment
+
+- **Platform**: Azure App Service / Static Web Apps (recommended)
+- **Build Output**: Static files (HTML, CSS, JS)
+- **Build Command**: `npm run build`
+- **Output Directory**: `dist/`
+- **Environment**: Production environment variables
+
+### Backend Deployment
+
+- **Platform**: Azure App Service / Container Apps (recommended)
+- **Runtime**: Node.js
+- **Start Command**: `npm run start:prod`
+- **Build Command**: `npm run build`
+- **Health Check**: GET `/api/health` (if implemented)
+
+### Database Hosting
+
+- **Platform**: MongoDB Atlas (recommended) or Azure Cosmos DB
+- **Connection**: Secure connection string with authentication
+- **Backup**: Automated backups configured
+
+### Environment Separation
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  PRODUCTION                                             │
+│  ├─ Frontend: https://app.example.com                   │
+│  ├─ Backend:  https://api.example.com                   │
+│  └─ Database: MongoDB Atlas (prod cluster)             │
+└─────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────┐
+│  DEVELOPMENT                                            │
+│  ├─ Frontend: http://localhost:4200                     │
+│  ├─ Backend:  http://localhost:3000                     │
+│  └─ Database: MongoDB local or Atlas (dev cluster)     │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🧪 Testing Strategy
+
+### Backend Tests
+
+```
+tests/
+├── unit/          # Unit tests for services & utilities
+├── system/        # Integration tests for modules
+└── e2e/           # End-to-end API tests
+```
+
+### Frontend Tests
+
+```
+tests/
+├── Unit tests for components & hooks
+├── Integration tests for user flows
+└── E2E tests (if configured)
+```
+
+### Test Commands
+
+- **Backend**: `npm test` (Jest)
+- **Frontend**: `npm test` (if configured)
+
+---
+
+## 📈 Scalability Considerations
+
+### Horizontal Scaling
+
+- **Frontend**: CDN distribution for static assets
+- **Backend**: Stateless API servers (multiple instances)
+- **Database**: MongoDB replica sets / sharding
+
+### Caching Strategy
+
+- **Frontend**: Browser caching, service workers (future)
+- **Backend**: Response caching for read-heavy operations
+- **Database**: Indexed queries for performance
+
+### Performance Optimization
+
+- **Frontend**: Code splitting, lazy loading, optimized bundles
+- **Backend**: Connection pooling, efficient queries
+- **Database**: Proper indexing, query optimization
+
+---
+
+## 🔄 Development Workflow
+
+### Monorepo Structure
+
+```
+L2S1LU1-TypeScript/
+├── apps/
+│   ├── frontend/    # React application
+│   └── backend/     # NestJS application
+├── ARCHITECTURE.md  # This document
+├── README.md        # Project overview
+└── package.json     # Root package (workspace management)
+```
+
+### Running the Application
+
+**Backend**:
+
+```bash
+cd apps/backend
+npm install
+npm run dev        # Development mode with hot reload
+```
+
+**Frontend**:
+
+```bash
+cd apps/frontend
+npm install
+npm run dev        # Development server
+```
+
+### Development Tools
+
+- **TypeScript**: Type safety across stack
+- **ESLint**: Code quality & consistency
+- **Prettier**: Code formatting
+- **Git**: Version control
+
+---
+
+## 📚 Key Design Patterns
+
+### Backend Patterns
+
+1. **Clean Architecture**: Separation of concerns across layers
+2. **Repository Pattern**: Abstraction over data access
+3. **Dependency Injection**: NestJS built-in DI container
+4. **Discriminated Union**: Type-safe role handling
+5. **Result Pattern**: Functional error handling
+
+### Frontend Patterns
+
+1. **Component Composition**: Reusable UI components
+2. **Custom Hooks**: Shared logic extraction
+3. **Protected Routes**: HOC for route protection
+4. **Render Props**: Flexible component APIs
+5. **Context API**: Theme & auth state management
+
+---
+
+## 🎯 Future Enhancements
+
+### Potential Improvements
+
+- [ ] GraphQL API for more flexible data fetching
+- [ ] WebSocket support for real-time updates
+- [ ] Advanced recommendation algorithm (ML-based)
+- [ ] File upload for user profiles & elective materials
+- [ ] Notification system (email, push)
+- [ ] Analytics dashboard for admins
+- [ ] Multi-language support (i18n)
+- [ ] Progressive Web App (PWA) features
+- [ ] Automated testing coverage > 80%
+- [ ] Performance monitoring & logging (APM)
+
+---
+
+## 📝 Documentation
+
+- **ARCHITECTURE.md**: This document - system architecture overview
+- **IMPLEMENTATION.md**: Implementation details & technical decisions
+- **README.md**: Project setup & getting started guide
+- **API Documentation**: Swagger UI (available at `/api/docs` in development)
+
+---
+
+**Last Updated**: October 19, 2025  
+**Version**: 0.2.0  
+**Maintained By**: Daniël van Ginneken
 
 ---
 
