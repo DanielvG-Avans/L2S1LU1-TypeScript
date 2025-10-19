@@ -1,5 +1,5 @@
 /**
- * Custom hook for fetching and managing user data
+ * Custom hook for fetching and managing the current authenticated user
  */
 
 import { useEffect, useState, useCallback } from "react";
