@@ -1,12 +1,22 @@
-import { useState, useEffect } from "react";
-import Loading from "@/components/Loading";
-import ErrorState from "@/components/ErrorState";
+import type { StudentUser, TeacherUser, UserRole } from "@/types/User";
+import { UserFormDialog } from "@/components/users/UserFormDialog";
 import { UserTabs } from "@/components/users/UserTabs";
 import { UserList } from "@/components/users/UserList";
-import { UserFormDialog } from "@/components/users/UserFormDialog";
-import type { StudentUser, TeacherUser, UserRole } from "@/types/User";
+import ErrorState from "@/components/ErrorState";
 import { userApi } from "@/services/api.service";
+import { useState, useEffect } from "react";
+import Loading from "@/components/Loading";
 import { toast } from "sonner";
+import {
+  AlertDialogDescription,
+  AlertDialogContent,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialog,
+} from "@/components/ui/alert-dialog";
 
 interface UserFormData {
   firstName: string;
@@ -36,6 +46,13 @@ export default function UserManagement() {
   });
   const [formSubmitting, setFormSubmitting] = useState(false);
 
+  // Delete alert dialog state
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<{
+    id: string;
+    role: "student" | "teacher";
+  } | null>(null);
+
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -58,23 +75,29 @@ export default function UserManagement() {
     }
   };
 
-  const handleDeleteUser = async (userId: string, role: "student" | "teacher") => {
-    if (!confirm("Are you sure you want to delete this user?")) {
-      return;
-    }
+  const handleDeleteUser = (userId: string, role: "student" | "teacher") => {
+    setUserToDelete({ id: userId, role });
+    setIsDeleteAlertOpen(true);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
 
     try {
-      await userApi.delete(userId);
+      await userApi.delete(userToDelete.id);
       toast.success("User deleted successfully");
 
       // Update local state
-      if (role === "student") {
-        setStudents(students.filter((s) => s.id !== userId));
+      if (userToDelete.role === "student") {
+        setStudents(students.filter((s) => s.id !== userToDelete.id));
       } else {
-        setTeachers(teachers.filter((t) => t.id !== userId));
+        setTeachers(teachers.filter((t) => t.id !== userToDelete.id));
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to delete user");
+    } finally {
+      setIsDeleteAlertOpen(false);
+      setUserToDelete(null);
     }
   };
 
@@ -212,6 +235,26 @@ export default function UserManagement() {
         onSubmit={handleFormSubmit}
         submitting={formSubmitting}
       />
+
+      <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete this user from the system.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteUser}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
