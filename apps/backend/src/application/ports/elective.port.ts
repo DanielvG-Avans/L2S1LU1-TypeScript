@@ -8,4 +8,6 @@ export interface IElectiveService {
   createElective(data: Elective): Promise<Result<Elective>>;
   updateElective(id: string, data: Elective | Partial<Elective>): Promise<Result<Elective>>;
   deleteElective(id: string): Promise<Result<boolean>>;
+  assignTeacherToElective(electiveId: string, teacherId: string): Promise<Result<boolean>>;
+  unassignTeacherFromElective(electiveId: string, teacherId: string): Promise<Result<boolean>>;
 }

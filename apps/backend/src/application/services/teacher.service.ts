@@ -1,10 +1,10 @@
-import { Injectable, Inject, Logger } from "@nestjs/common";
-import { ITeacherService } from "../ports/teacher.port";
-import { REPOSITORIES, SERVICES } from "../../di-tokens";
+import { type IElectiveRepository } from "../../domain/elective/elective.repository.interface";
 import { type IUserRepository } from "../../domain/user/user.repository.interface";
-import { type IElectiveService } from "../ports/elective.port";
+import { Injectable, Inject, Logger } from "@nestjs/common";
 import { Elective } from "../../domain/elective/elective";
+import { ITeacherService } from "../ports/teacher.port";
 import { Result, ok, err } from "../../domain/result";
+import { REPOSITORIES } from "../../di-tokens";
 
 //* Teacher Service Implementation
 @Injectable()
@@ -14,8 +14,8 @@ export class TeacherService implements ITeacherService {
   constructor(
     @Inject(REPOSITORIES.USER)
     private readonly userRepo: IUserRepository,
-    @Inject(SERVICES.ELECTIVE)
-    private readonly electiveService: IElectiveService,
+    @Inject(REPOSITORIES.ELECTIVE)
+    private readonly electiveRepo: IElectiveRepository,
   ) {}
 
   public async getElectivesGiven(teacherId: string): Promise<Result<Elective[]>> {
@@ -25,17 +25,8 @@ export class TeacherService implements ITeacherService {
       return err("TEACHER_NOT_FOUND", "Teacher not found", { teacherId });
     }
 
-    // TypeScript narrows user to TeacherUser after the role check
-    const moduleList = user.modulesGiven || [];
-    const modules: Elective[] = [];
-
-    for (const electiveId of moduleList) {
-      const electiveResult = await this.electiveService.getElectiveById(electiveId);
-      if (electiveResult.ok) {
-        modules.push(electiveResult.data);
-      }
-    }
-
-    return ok(modules);
+    // Query electives by teacherId in the teachers array
+    const electives = await this.electiveRepo.findByTeacherId(teacherId);
+    return ok(electives);
   }
 }

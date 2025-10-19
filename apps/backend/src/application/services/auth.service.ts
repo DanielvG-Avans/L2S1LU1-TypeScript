@@ -1,10 +1,10 @@
-import bcrypt from "bcrypt";
 import { JwtService } from "@nestjs/jwt";
 import { SERVICES } from "../../di-tokens";
 import { type IUserService } from "../ports/user.port";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { loginResponse, loginRequest, IAuthService } from "../ports/auth.port";
 import { Result, ok, err } from "../../domain/result";
+import { PasswordUtil } from "../utils/password.util";
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -27,7 +27,7 @@ export class AuthService implements IAuthService {
     }
 
     const user = userResult.data;
-    const isPasswordValid = await bcrypt.compare(data.password, user.passwordHash);
+    const isPasswordValid = await PasswordUtil.compare(data.password, user.passwordHash);
     if (!isPasswordValid) {
       return err("INVALID_CREDENTIALS", "Invalid email or password");
     }

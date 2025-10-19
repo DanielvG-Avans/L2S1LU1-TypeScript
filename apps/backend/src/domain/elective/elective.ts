@@ -11,6 +11,7 @@ export interface Elective {
   location: string; // e.g. "Breda"
   level: string; // e.g. "NLQF5"
   tags?: string[]; // optional, for filtering/recommendations
+  teachers?: string[]; // list of Teacher (User) _id's
   createdAt?: string;
   updatedAt?: string;
 }

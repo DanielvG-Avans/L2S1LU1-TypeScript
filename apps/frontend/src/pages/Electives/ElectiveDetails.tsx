@@ -1,13 +1,14 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { useMemo, useCallback } from "react";
 import ProviderBadge from "@/components/elective/ProviderBadge";
 import { RoleProtected } from "@/components/auth/RoleProtected";
+import { useMemo, useCallback, useState } from "react";
+import { useFavorites } from "@/hooks/useFavorites";
+import { useElective } from "@/hooks/useElective";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useElective } from "@/hooks/useElective";
-import { useFavorites } from "@/hooks/useFavorites";
+import { ElectiveEditDialog } from "@/components/elective/ElectiveFormDialog";
 
 const ElectiveDetailPage = () => {
   const { electiveId } = useParams<{ electiveId: string }>();
@@ -15,8 +16,12 @@ const ElectiveDetailPage = () => {
   const location = useLocation();
 
   // Use the new custom hook for fetching elective data
-  const { elective, loading, error, isFavorited, setIsFavorited } = useElective(electiveId);
+  const { elective, loading, error, isFavorited, setIsFavorited, refetch } =
+    useElective(electiveId);
   const { toggleFavorite: toggleFavoriteApi, loading: favoriteLoading } = useFavorites();
+
+  // Edit dialog state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   // Favorite toggle with optimistic UI
   const toggleFavorite = useCallback(async () => {
@@ -126,21 +131,7 @@ const ElectiveDetailPage = () => {
       </Card>
 
       {/* Footer Actions */}
-      <div className="flex justify-end pt-4 gap-2">
-        {/* Only students can add to favorites */}
-        <RoleProtected allowedRoles="student">
-          <Button
-            variant={isFavorited ? "destructive" : "outline"}
-            onClick={toggleFavorite}
-            disabled={favoriteLoading}
-            className={`rounded-xl border-border/50 hover:border-primary/50 transition-all ${
-              favoriteLoading ? "animate-pulse" : ""
-            }`}
-          >
-            {isFavorited ? "★ Favorited" : "☆ Add to Favorites"}
-          </Button>
-        </RoleProtected>
-
+      <div className="flex justify-between pt-4 gap-2">
         <Button
           variant="outline"
           onClick={() => navigate(location.state?.from ?? "/electives")}
@@ -148,7 +139,46 @@ const ElectiveDetailPage = () => {
         >
           ← Back to Electives
         </Button>
+
+        <div className="flex gap-2">
+          {/* Only admins can edit */}
+          <RoleProtected allowedRoles="admin">
+            <Button
+              variant="default"
+              onClick={() => setEditDialogOpen(true)}
+              className="rounded-xl transition-all"
+            >
+              ✏️ Edit Elective
+            </Button>
+          </RoleProtected>
+
+          {/* Only students can add to favorites */}
+          <RoleProtected allowedRoles="student">
+            <Button
+              variant={isFavorited ? "destructive" : "outline"}
+              onClick={toggleFavorite}
+              disabled={favoriteLoading}
+              className={`rounded-xl border-border/50 hover:border-primary/50 transition-all ${
+                favoriteLoading ? "animate-pulse" : ""
+              }`}
+            >
+              {isFavorited ? "★ Favorited" : "☆ Add to Favorites"}
+            </Button>
+          </RoleProtected>
+        </div>
       </div>
+
+      {/* Edit Dialog */}
+      {elective && (
+        <ElectiveEditDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          elective={elective}
+          onSuccess={() => {
+            refetch();
+          }}
+        />
+      )}
     </div>
   );
 };

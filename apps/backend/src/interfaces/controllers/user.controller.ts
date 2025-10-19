@@ -1,10 +1,12 @@
 import { type RequestWithCookies, AuthGuard } from "../guards/auth.guard";
-import { type IUserService } from "src/application/ports/user.port";
 import { type IStudentService } from "src/application/ports/student.port";
 import { type ITeacherService } from "src/application/ports/teacher.port";
+import { userDTO, createUserDTO, updateUserDTO } from "../dtos/user.dto";
+import { type IUserService } from "src/application/ports/user.port";
 import { type Elective } from "src/domain/elective/elective";
+import { Roles } from "../decorators/roles.decorator";
 import { RolesGuard } from "../guards/roles.guard";
-import { UserDTO } from "../dtos/user.dto";
+import { User } from "src/domain/user/user";
 import { ApiTags } from "@nestjs/swagger";
 import { SERVICES } from "src/di-tokens";
 import {
@@ -20,10 +22,11 @@ import {
   Logger,
   Param,
   Post,
+  Body,
+  Patch,
   Get,
   Req,
 } from "@nestjs/common";
-import { Roles } from "../decorators/roles.decorator";
 
 @ApiTags("users")
 @UseGuards(AuthGuard, RolesGuard)
@@ -57,7 +60,7 @@ export class UserController {
    */
   @Get("me")
   @HttpCode(HttpStatus.OK)
-  public async getProfile(@Req() req: RequestWithCookies): Promise<UserDTO> {
+  public async getProfile(@Req() req: RequestWithCookies): Promise<userDTO> {
     const { sub: userId } = this.getAuthClaims(req);
 
     const userResult = await this.userService.getUserById(userId.toString());
@@ -67,6 +70,122 @@ export class UserController {
     }
 
     return userResult.data;
+  }
+
+  /**
+   * Get all users (admin only)
+   * Available to users with role: admin
+   */
+  @Get()
+  @Roles("admin")
+  @HttpCode(HttpStatus.OK)
+  public async getAllUsers(): Promise<userDTO[]> {
+    const result = await this.userService.getAllUsers();
+    if (!result.ok) {
+      this.logger.warn(`Failed to get all users: ${result.error.code}`);
+      throw new NotFoundException(result.error.message || "Failed to get users");
+    }
+
+    return result.data;
+  }
+
+  /**
+   * Create a new user (admin only)
+   * Available to users with role: admin
+   */
+  @Post()
+  @Roles("admin")
+  @HttpCode(HttpStatus.CREATED)
+  public async createUser(@Body() createUserDto: createUserDTO): Promise<userDTO> {
+    if (
+      !createUserDto.firstName ||
+      !createUserDto.lastName ||
+      !createUserDto.email ||
+      !createUserDto.password ||
+      !createUserDto.role
+    ) {
+      throw new BadRequestException("Missing required fields");
+    }
+
+    // Create user object based on role (password will be hashed in service layer)
+    let userData: User;
+    if (createUserDto.role === "student") {
+      userData = {
+        firstName: createUserDto.firstName,
+        lastName: createUserDto.lastName,
+        email: createUserDto.email,
+        role: "student",
+        passwordHash: createUserDto.password, // Pass plain password, service will hash it
+        favorites: [],
+      };
+    } else if (createUserDto.role === "teacher") {
+      userData = {
+        firstName: createUserDto.firstName,
+        lastName: createUserDto.lastName,
+        email: createUserDto.email,
+        role: "teacher",
+        passwordHash: createUserDto.password, // Pass plain password, service will hash it
+      };
+    } else {
+      userData = {
+        firstName: createUserDto.firstName,
+        lastName: createUserDto.lastName,
+        email: createUserDto.email,
+        role: "admin",
+        passwordHash: createUserDto.password, // Pass plain password, service will hash it
+      };
+    }
+
+    const result = await this.userService.createUser(userData);
+    if (!result.ok) {
+      this.logger.warn(`Failed to create user: ${result.error.code}`);
+      throw new BadRequestException(result.error.message || "Failed to create user");
+    }
+
+    return result.data;
+  }
+
+  /**
+   * Update a user (admin only)
+   * Available to users with role: admin
+   */
+  @Patch(":userId")
+  @Roles("admin")
+  @HttpCode(HttpStatus.OK)
+  public async updateUser(
+    @Param("userId") userId: string,
+    @Body() updateUserDto: updateUserDTO,
+  ): Promise<userDTO> {
+    if (!userId) {
+      throw new BadRequestException("User ID is required");
+    }
+
+    const result = await this.userService.updateUser(userId, updateUserDto);
+    if (!result.ok) {
+      this.logger.warn(`Failed to update user: ${result.error.code}`);
+      throw new BadRequestException(result.error.message || "Failed to update user");
+    }
+
+    return result.data;
+  }
+
+  /**
+   * Delete a user (admin only)
+   * Available to users with role: admin
+   */
+  @Delete(":userId")
+  @Roles("admin")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  public async deleteUser(@Param("userId") userId: string): Promise<void> {
+    if (!userId) {
+      throw new BadRequestException("User ID is required");
+    }
+
+    const result = await this.userService.deleteUser(userId);
+    if (!result.ok) {
+      this.logger.warn(`Failed to delete user: ${result.error.code}`);
+      throw new BadRequestException(result.error.message || "Failed to delete user");
+    }
   }
 
   /**

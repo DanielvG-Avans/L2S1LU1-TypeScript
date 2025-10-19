@@ -5,7 +5,7 @@
 
 import { fetchBackend } from "@/lib/fetch";
 import type { Elective } from "@/types/Elective";
-import type { User } from "@/types/User";
+import type { User, StudentUser, TeacherUser } from "@/types/User";
 
 // ============================================
 // User API
@@ -21,6 +21,85 @@ export const userApi = {
       throw new Error(`Failed to fetch user profile: ${response.statusText}`);
     }
     return (await response.json()) as User;
+  },
+
+  /**
+   * Get all users (admin only)
+   */
+  getAll: async (): Promise<User[]> => {
+    const response = await fetchBackend("/api/users");
+    if (!response.ok) {
+      throw new Error(`Failed to fetch users: ${response.statusText}`);
+    }
+    return (await response.json()) as User[];
+  },
+
+  /**
+   * Create a new user (admin only)
+   */
+  create: async (userData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    role: "student" | "teacher" | "admin";
+  }): Promise<User> => {
+    const response = await fetchBackend("/api/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(userData),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to create user: ${response.statusText}`);
+    }
+    return (await response.json()) as User;
+  },
+
+  /**
+   * Update a user (admin only)
+   */
+  update: async (
+    userId: string,
+    userData: {
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+    },
+  ): Promise<User> => {
+    const response = await fetchBackend(`/api/users/${userId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(userData),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to update user: ${response.statusText}`);
+    }
+    return (await response.json()) as User;
+  },
+
+  /**
+   * Delete a user (admin only)
+   */
+  delete: async (userId: string): Promise<void> => {
+    const response = await fetchBackend(`/api/users/${userId}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to delete user: ${response.statusText}`);
+    }
+  },
+
+  /**
+   * Helper to separate users by role
+   */
+  separateByRole(users: User[]): {
+    students: StudentUser[];
+    teachers: TeacherUser[];
+  } {
+    return {
+      students: users.filter((user): user is StudentUser => user.role === "student"),
+      teachers: users.filter((user): user is TeacherUser => user.role === "teacher"),
+    };
   },
 };
 
@@ -53,6 +132,65 @@ export const electivesApi = {
       throw new Error("Elective not found");
     }
     return data;
+  },
+
+  /**
+   * Create a new elective (admin only)
+   */
+  create: async (
+    electiveData: Omit<Elective, "id" | "createdAt" | "updatedAt">,
+  ): Promise<Elective> => {
+    const response = await fetchBackend("/api/electives", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(electiveData),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to create elective: ${response.statusText}`);
+    }
+    return (await response.json()) as Elective;
+  },
+
+  /**
+   * Update an existing elective (admin only)
+   */
+  update: async (
+    electiveId: string,
+    electiveData: Partial<Omit<Elective, "id" | "createdAt" | "updatedAt">>,
+  ): Promise<Elective> => {
+    const response = await fetchBackend(`/api/electives/${electiveId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(electiveData),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to update elective: ${response.statusText}`);
+    }
+    return (await response.json()) as Elective;
+  },
+
+  /**
+   * Assign a teacher to an elective (admin only)
+   */
+  assignTeacher: async (electiveId: string, teacherId: string): Promise<void> => {
+    const response = await fetchBackend(`/api/electives/${electiveId}/teachers/${teacherId}`, {
+      method: "POST",
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to assign teacher: ${response.statusText}`);
+    }
+  },
+
+  /**
+   * Unassign a teacher from an elective (admin only)
+   */
+  unassignTeacher: async (electiveId: string, teacherId: string): Promise<void> => {
+    const response = await fetchBackend(`/api/electives/${electiveId}/teachers/${teacherId}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to unassign teacher: ${response.statusText}`);
+    }
   },
 };
 

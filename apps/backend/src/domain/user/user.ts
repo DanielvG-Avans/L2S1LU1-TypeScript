@@ -20,7 +20,6 @@ export interface StudentUser extends BaseUser {
 /** 👨‍🏫 Teacher */
 export interface TeacherUser extends BaseUser {
   role: "teacher";
-  modulesGiven: string[]; // list of Elective _id's
 }
 
 /** 🧑‍💼 Admin */

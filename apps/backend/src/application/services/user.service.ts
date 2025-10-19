@@ -3,7 +3,9 @@ import { IUserService } from "../ports/user.port";
 import { REPOSITORIES } from "../../di-tokens";
 import { Injectable, Inject, Logger } from "@nestjs/common";
 import { type IUserRepository } from "../../domain/user/user.repository.interface";
+import { type IElectiveRepository } from "../../domain/elective/elective.repository.interface";
 import { Result, ok, err } from "../../domain/result";
+import { PasswordUtil } from "../utils/password.util";
 
 //* User Service Implementation
 @Injectable()
@@ -13,6 +15,8 @@ export class UserService implements IUserService {
   constructor(
     @Inject(REPOSITORIES.USER)
     private readonly userRepo: IUserRepository,
+    @Inject(REPOSITORIES.ELECTIVE)
+    private readonly electiveRepo: IElectiveRepository,
   ) {}
 
   public async getUserById(id: string): Promise<Result<User>> {
@@ -34,11 +38,30 @@ export class UserService implements IUserService {
     return ok(user);
   }
 
+  public async getAllUsers(): Promise<Result<User[]>> {
+    const users = await this.userRepo.find();
+    if (!users) {
+      this.logger.error("Failed to fetch all users");
+      return err("USERS_FETCH_FAILED", "Failed to fetch users");
+    }
+    return ok(users);
+  }
+
   public async createUser(data: User): Promise<Result<User>> {
     if (!data) {
       this.logger.warn("No user data provided for creation");
       return err("NO_USER_DATA", "No user data provided");
     }
+
+    if (await this.userRepo.findByEmail(data.email)) {
+      this.logger.warn(`User with email ${data.email} already exists`);
+      return err("USER_ALREADY_EXISTS", "User with this email already exists", {
+        email: data.email,
+      });
+    }
+
+    // Hash the password before saving using centralized PasswordUtil
+    data.passwordHash = await PasswordUtil.hash(data.passwordHash);
 
     const created = await this.userRepo.create(data);
     if (!created) {
@@ -80,11 +103,15 @@ export class UserService implements IUserService {
       });
     }
 
-    if (user.role === "teacher" && "modulesGiven" in user && user.modulesGiven.length > 0) {
-      this.logger.warn(`Cannot delete teacher with id ${id} who teaches electives`);
-      return err("USER_DELETE_FAILED", "Cannot delete teacher with active electives", {
-        userId: id,
-      });
+    if (user.role === "teacher") {
+      // Check if teacher is assigned to any electives
+      const electives = await this.electiveRepo.findByTeacherId(id);
+      if (electives.length > 0) {
+        this.logger.warn(`Cannot delete teacher with id ${id} who teaches electives`);
+        return err("USER_DELETE_FAILED", "Cannot delete teacher with active electives", {
+          userId: id,
+        });
+      }
     }
 
     const deleted = await this.userRepo.delete(id);

@@ -1,10 +1,13 @@
 import { type IElectiveService } from "src/application/ports/elective.port";
 import { type Elective } from "src/domain/elective/elective";
 import { AuthGuard } from "../guards/auth.guard";
+import { RolesGuard } from "../guards/roles.guard";
+import { Roles } from "../decorators/roles.decorator";
 import { ApiTags } from "@nestjs/swagger";
 import { SERVICES } from "src/di-tokens";
 import {
   NotFoundException,
+  BadRequestException,
   HttpStatus,
   Controller,
   UseGuards,
@@ -21,7 +24,7 @@ import {
 } from "@nestjs/common";
 
 @ApiTags("electives")
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, RolesGuard)
 @Controller("electives")
 export class ElectiveController {
   private readonly logger: Logger = new Logger(ElectiveController.name);
@@ -32,6 +35,7 @@ export class ElectiveController {
   ) {}
 
   @Post()
+  @Roles("admin")
   @HttpCode(HttpStatus.CREATED)
   public async createElective(@Body() data: Elective): Promise<Elective> {
     const result = await this.electiveService.createElective(data);
@@ -68,6 +72,7 @@ export class ElectiveController {
   }
 
   @Put(":id")
+  @Roles("admin")
   @HttpCode(HttpStatus.OK)
   public async updateElective(@Param("id") id: string, @Body() data: Elective): Promise<Elective> {
     const result = await this.electiveService.updateElective(id, data);
@@ -80,6 +85,7 @@ export class ElectiveController {
   }
 
   @Patch(":id")
+  @Roles("admin")
   @HttpCode(HttpStatus.OK)
   public async partialUpdateElective(
     @Param("id") id: string,
@@ -95,6 +101,7 @@ export class ElectiveController {
   }
 
   @Delete(":id")
+  @Roles("admin")
   @HttpCode(HttpStatus.NO_CONTENT)
   public async deleteElective(@Param("id") id: string): Promise<void> {
     const result = await this.electiveService.deleteElective(id);
@@ -102,5 +109,43 @@ export class ElectiveController {
       this.logger.warn(`Failed to delete elective: ${result.error.code}`);
       throw new NotFoundException(result.error.message || "Failed to delete elective");
     }
+  }
+
+  @Post(":id/teachers/:teacherId")
+  @Roles("admin")
+  @HttpCode(HttpStatus.OK)
+  public async assignTeacherToElective(
+    @Param("id") electiveId: string,
+    @Param("teacherId") teacherId: string,
+  ): Promise<{ message: string }> {
+    const result = await this.electiveService.assignTeacherToElective(electiveId, teacherId);
+    if (!result.ok) {
+      this.logger.warn(`Failed to assign teacher: ${result.error.code}`);
+      if (result.error.code === "ALREADY_ASSIGNED") {
+        throw new BadRequestException(result.error.message || "Teacher already assigned");
+      }
+      throw new NotFoundException(result.error.message || "Failed to assign teacher");
+    }
+
+    return { message: "Teacher assigned successfully" };
+  }
+
+  @Delete(":id/teachers/:teacherId")
+  @Roles("admin")
+  @HttpCode(HttpStatus.OK)
+  public async unassignTeacherFromElective(
+    @Param("id") electiveId: string,
+    @Param("teacherId") teacherId: string,
+  ): Promise<{ message: string }> {
+    const result = await this.electiveService.unassignTeacherFromElective(electiveId, teacherId);
+    if (!result.ok) {
+      this.logger.warn(`Failed to unassign teacher: ${result.error.code}`);
+      if (result.error.code === "NOT_ASSIGNED") {
+        throw new BadRequestException(result.error.message || "Teacher not assigned");
+      }
+      throw new NotFoundException(result.error.message || "Failed to unassign teacher");
+    }
+
+    return { message: "Teacher unassigned successfully" };
   }
 }

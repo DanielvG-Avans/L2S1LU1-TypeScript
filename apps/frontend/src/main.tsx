@@ -14,6 +14,8 @@ import HomePage from "@/pages/Home";
 import { StrictMode } from "react";
 import "@/main.css";
 import { RoleProtectedRoute } from "./components/auth/RoleProtectedRoute";
+import AdminDashboard from "./pages/Admin/AdminDashboard";
+import UserManagement from "./pages/Admin/UserManagement";
 
 const router = createBrowserRouter([
   {
@@ -50,6 +52,26 @@ const router = createBrowserRouter([
           <ProtectedRoute>
             <RoleProtectedRoute allowedRoles={["student"]}>
               <RecommendationsPage />
+            </RoleProtectedRoute>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/users",
+        element: (
+          <ProtectedRoute>
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+              <UserManagement />
+            </RoleProtectedRoute>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/admin",
+        element: (
+          <ProtectedRoute>
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+              <AdminDashboard />
             </RoleProtectedRoute>
           </ProtectedRoute>
         ),

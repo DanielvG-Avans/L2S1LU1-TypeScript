@@ -9,9 +9,17 @@ type HeaderProps = {
   onLogout?: () => void;
 };
 
-const navItems = [
+interface NavItem {
+  title: string;
+  href: string;
+  roles?: string[];
+}
+
+const navItems: NavItem[] = [
   { title: "Home", href: "/" },
   { title: "Electives", href: "/electives" },
+  { title: "Users", href: "/users", roles: ["admin"] },
+  { title: "Recommendations", href: "/recommendations", roles: ["student"] },
 ];
 
 const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
@@ -49,15 +57,19 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
 
           {/* Center: Nav (desktop) */}
           <nav className="hidden md:flex items-center space-x-6">
-            {navItems.map((item) => (
-              <Link
-                key={item.title}
-                to={item.href}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {item.title}
-              </Link>
-            ))}
+            {navItems.map((item) => {
+              if (!item.roles || (user && item.roles.includes(user.role))) {
+                return (
+                  <Link
+                    key={item.title}
+                    to={item.href}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {item.title}
+                  </Link>
+                );
+              }
+            })}
           </nav>
 
           {/* Right: Auth / Theme Toggle / Mobile toggle */}

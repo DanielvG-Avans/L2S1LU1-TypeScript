@@ -1,6 +1,6 @@
 export type UserRole = "student" | "teacher" | "admin";
 
-export interface BaseUserDTO {
+export class baseUserDTO {
   id?: string;
   firstName: string;
   lastName: string;
@@ -11,21 +11,36 @@ export interface BaseUserDTO {
 }
 
 /** 👩‍🎓 Student */
-export interface StudentUserDTO extends BaseUserDTO {
+export interface studentUserDTO extends baseUserDTO {
   role: "student";
   favorites: string[]; // list of Elective _id's
 }
 
 /** 👨‍🏫 Teacher */
-export interface TeacherUserDTO extends BaseUserDTO {
+export interface teacherUserDTO extends baseUserDTO {
   role: "teacher";
-  modulesGiven: string[]; // list of Elective _id's
 }
 
 /** 🧑‍💼 Admin */
-export interface AdminUserDTO extends BaseUserDTO {
+export interface adminUserDTO extends baseUserDTO {
   role: "admin";
 }
 
 /** 🎯 Discriminated Union */
-export type UserDTO = StudentUserDTO | TeacherUserDTO | AdminUserDTO;
+export type userDTO = studentUserDTO | teacherUserDTO | adminUserDTO;
+
+/** Create User DTO */
+export class createUserDTO {
+  firstName!: string;
+  lastName!: string;
+  email!: string;
+  role!: UserRole;
+  password!: string;
+}
+
+/** Update User DTO */
+export class updateUserDTO {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+}
