@@ -30,16 +30,16 @@ export class TeacherController {
     private readonly teacherService: ITeacherService,
   ) {}
 
-  @Get("me/modules")
+  @Get("me/electives")
   @HttpCode(HttpStatus.OK)
-  public async getModulesGiven(@Req() req: RequestWithCookies): Promise<Elective[]> {
+  public async getElectivesGiven(@Req() req: RequestWithCookies): Promise<Elective[]> {
     const teacherId = req.authClaims?.sub;
     if (!teacherId) {
-      this.logger.warn("Unauthorized access attempt to get modules");
+      this.logger.warn("Unauthorized access attempt to get electives");
       throw new UnauthorizedException("User not authenticated");
     }
 
-    const result = await this.teacherService.getModulesGiven(teacherId.toString());
+    const result = await this.teacherService.getElectivesGiven(teacherId.toString());
     if (!result.ok) {
       this.logger.warn(`Failed to get modules: ${result.error.code}`);
       throw new NotFoundException(result.error.message || "No modules found");

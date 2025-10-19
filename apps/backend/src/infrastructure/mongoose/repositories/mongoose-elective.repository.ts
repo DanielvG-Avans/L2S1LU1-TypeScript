@@ -25,16 +25,16 @@ export class MongooseElectiveRepository implements IElectiveRepository {
   }
 
   public async create(data: Elective): Promise<Elective> {
-    const created = await this.model.create(data as unknown as ElectiveModel);
+    const created = await this.model.create(data as ElectiveModel);
     // fetch lean doc to normalize
     const doc = (await this.model.findById(created._id).lean().exec()) as ElectiveModel;
     return this.toDomain(doc);
   }
 
-  public async update(id: string, data: Elective): Promise<Elective | null> {
+  public async update(id: string, data: Elective | Partial<Elective>): Promise<Elective | null> {
     if (!Types.ObjectId.isValid(id)) return null;
     const updated = await this.model
-      .findByIdAndUpdate(id, data as unknown as Partial<ElectiveModel>, {
+      .findByIdAndUpdate(id, data as Partial<ElectiveModel>, {
         new: true,
         runValidators: true,
       })
@@ -52,7 +52,7 @@ export class MongooseElectiveRepository implements IElectiveRepository {
   private toDomain(doc: ElectiveModel & { _id?: Types.ObjectId | string }): Elective {
     const { _id, ...rest } = doc ?? ({} as ElectiveModel);
     return {
-      ...(rest as unknown as Omit<Elective, "id">),
+      ...(rest as Omit<Elective, "id">),
       id: _id ? String(_id) : undefined,
     };
   }

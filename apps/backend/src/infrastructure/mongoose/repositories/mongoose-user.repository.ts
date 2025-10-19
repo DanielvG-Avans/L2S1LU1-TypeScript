@@ -54,7 +54,7 @@ export class MongooseUserRepository implements IUserRepository, OnModuleInit {
   }
 
   public async create(data: User): Promise<User> {
-    const created = await this.model.create(data as unknown as UserModel);
+    const created = await this.model.create(data as UserModel);
     const doc = (await this.model.findById(created._id).lean().exec()) as
       | (UserModel & { _id?: Types.ObjectId | string })
       | null;
@@ -62,10 +62,10 @@ export class MongooseUserRepository implements IUserRepository, OnModuleInit {
     return this.toDomain(doc);
   }
 
-  public async update(id: string, data: User): Promise<User | null> {
+  public async update(id: string, data: Partial<User> | User): Promise<User | null> {
     if (!Types.ObjectId.isValid(id)) return null;
     const updated = (await this.model
-      .findByIdAndUpdate(id, data as unknown as Partial<UserModel>, {
+      .findByIdAndUpdate(id, data as Partial<UserModel>, {
         new: true,
         runValidators: true,
       })
