@@ -3,29 +3,30 @@ import { type IUserService } from "src/application/ports/user.port";
 import { type IStudentService } from "src/application/ports/student.port";
 import { type ITeacherService } from "src/application/ports/teacher.port";
 import { type Elective } from "src/domain/elective/elective";
+import { RolesGuard } from "../guards/roles.guard";
 import { UserDTO } from "../dtos/user.dto";
 import { ApiTags } from "@nestjs/swagger";
 import { SERVICES } from "src/di-tokens";
 import {
   UnauthorizedException,
-  ForbiddenException,
-  NotFoundException,
   BadRequestException,
+  NotFoundException,
   Controller,
-  UseGuards,
   HttpStatus,
+  UseGuards,
   HttpCode,
+  Delete,
   Inject,
   Logger,
-  Delete,
   Param,
   Post,
   Get,
   Req,
 } from "@nestjs/common";
+import { Roles } from "../decorators/roles.decorator";
 
 @ApiTags("users")
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, RolesGuard)
 @Controller("users")
 export class UserController {
   private readonly logger = new Logger(UserController.name);
@@ -73,14 +74,10 @@ export class UserController {
    * Only available to users with role: student
    */
   @Get("me/favorites")
+  @Roles("student")
   @HttpCode(HttpStatus.OK)
   public async getFavorites(@Req() req: RequestWithCookies): Promise<Elective[]> {
-    const { sub: userId, role } = this.getAuthClaims(req);
-
-    if (role !== "student") {
-      this.logger.warn(`Non-student user ${userId} attempted to access favorites`);
-      throw new ForbiddenException("Only students can access favorites");
-    }
+    const { sub: userId } = this.getAuthClaims(req);
 
     const result = await this.studentService.getFavorites(userId.toString());
     if (!result.ok) {
@@ -96,17 +93,13 @@ export class UserController {
    * Only available to users with role: student
    */
   @Get("me/favorites/:electiveId")
+  @Roles("student")
   @HttpCode(HttpStatus.OK)
   public async checkIfFavorite(
     @Param("electiveId") electiveId: string,
     @Req() req: RequestWithCookies,
   ): Promise<{ isFavorite: boolean }> {
-    const { sub: userId, role } = this.getAuthClaims(req);
-
-    if (role !== "student") {
-      this.logger.warn(`Non-student user ${userId} attempted to check favorite`);
-      throw new ForbiddenException("Only students can check favorites");
-    }
+    const { sub: userId } = this.getAuthClaims(req);
 
     if (!electiveId) {
       throw new BadRequestException("Elective ID is required");
@@ -126,17 +119,13 @@ export class UserController {
    * Only available to users with role: student
    */
   @Post("me/favorites/:electiveId")
+  @Roles("student")
   @HttpCode(HttpStatus.CREATED)
   public async addFavorite(
     @Param("electiveId") electiveId: string,
     @Req() req: RequestWithCookies,
   ): Promise<void> {
-    const { sub: userId, role } = this.getAuthClaims(req);
-
-    if (role !== "student") {
-      this.logger.warn(`Non-student user ${userId} attempted to add favorite`);
-      throw new ForbiddenException("Only students can add favorites");
-    }
+    const { sub: userId } = this.getAuthClaims(req);
 
     if (!electiveId) {
       throw new BadRequestException("Elective ID is required");
@@ -157,17 +146,13 @@ export class UserController {
    * Only available to users with role: student
    */
   @Delete("me/favorites/:electiveId")
+  @Roles("student")
   @HttpCode(HttpStatus.NO_CONTENT)
   public async removeFavorite(
     @Param("electiveId") electiveId: string,
     @Req() req: RequestWithCookies,
   ): Promise<void> {
-    const { sub: userId, role } = this.getAuthClaims(req);
-
-    if (role !== "student") {
-      this.logger.warn(`Non-student user ${userId} attempted to remove favorite`);
-      throw new ForbiddenException("Only students can remove favorites");
-    }
+    const { sub: userId } = this.getAuthClaims(req);
 
     if (!electiveId) {
       throw new BadRequestException("Elective ID is required");
@@ -185,14 +170,10 @@ export class UserController {
    * Only available to users with role: teacher
    */
   @Get("me/electives")
+  @Roles("teacher")
   @HttpCode(HttpStatus.OK)
   public async getElectives(@Req() req: RequestWithCookies): Promise<Elective[]> {
-    const { sub: userId, role } = this.getAuthClaims(req);
-
-    if (role !== "teacher") {
-      this.logger.warn(`Non-teacher user ${userId} attempted to access electives`);
-      throw new ForbiddenException("Only teachers can access their electives");
-    }
+    const { sub: userId } = this.getAuthClaims(req);
 
     const result = await this.teacherService.getElectivesGiven(userId.toString());
     if (!result.ok) {
