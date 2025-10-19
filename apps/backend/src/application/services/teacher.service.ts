@@ -38,4 +38,77 @@ export class TeacherService implements ITeacherService {
 
     return ok(modules);
   }
+
+  public async assignElectiveToTeacher(
+    teacherId: string,
+    electiveId: string,
+  ): Promise<Result<boolean>> {
+    // Verify teacher exists
+    const user = await this.userRepo.findById(teacherId);
+    if (!user || user.role !== "teacher") {
+      this.logger.warn(`Teacher with id ${teacherId} not found`);
+      return err("TEACHER_NOT_FOUND", "Teacher not found", { teacherId });
+    }
+
+    // Verify elective exists
+    const electiveResult = await this.electiveService.getElectiveById(electiveId);
+    if (!electiveResult.ok) {
+      this.logger.warn(`Elective with id ${electiveId} not found`);
+      return err("ELECTIVE_NOT_FOUND", "Elective not found", { electiveId });
+    }
+
+    // Check if already assigned
+    const moduleList = user.modulesGiven || [];
+    if (moduleList.includes(electiveId)) {
+      this.logger.warn(`Elective ${electiveId} already assigned to teacher ${teacherId}`);
+      return err("ALREADY_ASSIGNED", "Elective already assigned to this teacher");
+    }
+
+    // Add elective to teacher's modulesGiven
+    const updatedUser = await this.userRepo.update(teacherId, {
+      ...user,
+      modulesGiven: [...moduleList, electiveId],
+    });
+
+    if (!updatedUser) {
+      this.logger.error(`Failed to assign elective ${electiveId} to teacher ${teacherId}`);
+      return err("ASSIGNMENT_FAILED", "Failed to assign elective to teacher");
+    }
+
+    this.logger.log(`Elective ${electiveId} assigned to teacher ${teacherId}`);
+    return ok(true);
+  }
+
+  public async unassignElectiveFromTeacher(
+    teacherId: string,
+    electiveId: string,
+  ): Promise<Result<boolean>> {
+    // Verify teacher exists
+    const user = await this.userRepo.findById(teacherId);
+    if (!user || user.role !== "teacher") {
+      this.logger.warn(`Teacher with id ${teacherId} not found`);
+      return err("TEACHER_NOT_FOUND", "Teacher not found", { teacherId });
+    }
+
+    // Check if assigned
+    const moduleList = user.modulesGiven || [];
+    if (!moduleList.includes(electiveId)) {
+      this.logger.warn(`Elective ${electiveId} not assigned to teacher ${teacherId}`);
+      return err("NOT_ASSIGNED", "Elective not assigned to this teacher");
+    }
+
+    // Remove elective from teacher's modulesGiven
+    const updatedUser = await this.userRepo.update(teacherId, {
+      ...user,
+      modulesGiven: moduleList.filter((id) => id !== electiveId),
+    });
+
+    if (!updatedUser) {
+      this.logger.error(`Failed to unassign elective ${electiveId} from teacher ${teacherId}`);
+      return err("UNASSIGNMENT_FAILED", "Failed to unassign elective from teacher");
+    }
+
+    this.logger.log(`Elective ${electiveId} unassigned from teacher ${teacherId}`);
+    return ok(true);
+  }
 }
