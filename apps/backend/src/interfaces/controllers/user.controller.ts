@@ -5,15 +5,12 @@ import { ApiTags } from "@nestjs/swagger";
 import { SERVICES } from "src/di-tokens";
 import {
   UnauthorizedException,
-  // NotFoundException,
   Controller,
   UseGuards,
   Inject,
   Logger,
-  // Param,
   Get,
   Req,
-  Post,
 } from "@nestjs/common";
 
 @ApiTags("users")
@@ -27,23 +24,20 @@ export class UserController {
     private readonly userService: IUserService,
   ) {}
 
-  @Post()
   @Get("me")
   public async me(@Req() req: RequestWithCookies): Promise<UserDTO> {
-    const claims = req.authClaims;
-    if (!claims || !claims.sub) {
+    const userId = req.authClaims?.sub;
+    if (!userId) {
       this.logger.warn("User not authenticated! No claims found in me()");
-      throw new UnauthorizedException("Unauthorized");
+      throw new UnauthorizedException("User not authenticated");
     }
 
-    const userId = claims.sub.toString();
-    const userResult = await this.userService.getUserById(userId);
+    const userResult = await this.userService.getUserById(userId.toString());
     if (!userResult.ok) {
       this.logger.warn(`User not found in me(): ${userId}`);
       throw new UnauthorizedException("Unauthorized");
     }
 
-    const user = userResult.data as UserDTO;
-    return user;
+    return userResult.data;
   }
 }

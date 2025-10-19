@@ -19,13 +19,14 @@ export class TeacherService implements ITeacherService {
   ) {}
 
   public async getElectivesGiven(teacherId: string): Promise<Result<Elective[]>> {
-    const teacher = await this.userRepo.findTeacherById(teacherId);
-    if (!teacher) {
+    const user = await this.userRepo.findById(teacherId);
+    if (!user || user.role !== "teacher") {
       this.logger.warn(`Teacher with id ${teacherId} not found`);
       return err("TEACHER_NOT_FOUND", "Teacher not found", { teacherId });
     }
 
-    const moduleList = teacher.modulesGiven || [];
+    // TypeScript narrows user to TeacherUser after the role check
+    const moduleList = user.modulesGiven || [];
     const modules: Elective[] = [];
 
     for (const electiveId of moduleList) {

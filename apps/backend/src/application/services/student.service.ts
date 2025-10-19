@@ -18,36 +18,46 @@ export class StudentService implements IStudentService {
     private readonly electiveService: IElectiveService,
   ) {}
 
-  // Normalizes a single value to a string (handles ObjectId-like objects and other types)
-  private normalizeIdValue(val: unknown): string {
-    if (typeof val === "string") return val;
+  /**
+   * Normalizes a single ID value to a string.
+   * Handles MongoDB ObjectId and other ID types.
+   */
+  private normalizeId(val: unknown): string {
+    if (typeof val === "string") {
+      return val;
+    }
 
+    // Handle MongoDB ObjectId with toHexString method
     if (val && typeof (val as { toHexString?: unknown }).toHexString === "function") {
       return (val as { toHexString: () => string }).toHexString();
     }
 
+    // Fallback to toString and extract hex if present
     if (val && typeof (val as { toString?: unknown }).toString === "function") {
-      const s = (val as { toString: () => string }).toString();
-      const m = s.match(/([0-9a-fA-F]{24})/);
-      return m ? m[1] : s;
+      const str = (val as { toString: () => string }).toString();
+      const hexMatch = str.match(/([0-9a-fA-F]{24})/);
+      return hexMatch ? hexMatch[1] : str;
     }
 
     return String(val);
   }
 
-  // Normalizes an array of unknown values into an array of strings
-  private normalizeIdArray(vals: unknown[]): string[] {
-    return vals.map((v) => this.normalizeIdValue(v));
+  /**
+   * Normalizes an array of ID values to strings.
+   */
+  private normalizeIds(vals: unknown[]): string[] {
+    return vals.map((v) => this.normalizeId(v));
   }
 
   public async getFavorites(studentId: string): Promise<Result<Elective[]>> {
-    const student = await this.userRepo.findStudentById(studentId);
-    if (!student) {
+    const user = await this.userRepo.findById(studentId);
+    if (!user || user.role !== "student") {
       this.logger.warn(`Student with id ${studentId} not found`);
       return err("STUDENT_NOT_FOUND", "Student not found", { studentId });
     }
 
-    const favoriteList = student.favorites || [];
+    // TypeScript narrows user to StudentUser after the role check
+    const favoriteList = user.favorites || [];
     const favorites: Elective[] = [];
 
     for (const electiveId of favoriteList) {
@@ -61,18 +71,16 @@ export class StudentService implements IStudentService {
   }
 
   public async addFavorite(studentId: string, electiveId: string): Promise<Result<boolean>> {
-    const student = await this.userRepo.findStudentById(studentId);
-    if (!student) {
+    const user = await this.userRepo.findById(studentId);
+    if (!user || user.role !== "student") {
       this.logger.warn(`Student with id ${studentId} not found`);
       return err("STUDENT_NOT_FOUND", "Student not found", { studentId });
     }
 
-    // Normalize stored favorites to strings to handle ObjectId and other types
-    const favoriteList = student.favorites ?? [];
-    const favs = Array.isArray(favoriteList) ? (favoriteList as unknown[]) : [];
-    const favStrings = this.normalizeIdArray(favs);
+    // TypeScript narrows user to StudentUser after the role check
+    const favoriteIds = this.normalizeIds((user.favorites ?? []) as unknown[]);
 
-    if (favStrings.includes(electiveId)) {
+    if (favoriteIds.includes(electiveId)) {
       this.logger.warn(`Elective ${electiveId} is already a favorite of student ${studentId}`);
       return err("ELECTIVE_ALREADY_FAVORITE", "Elective is already a favorite", {
         studentId,
@@ -80,49 +88,42 @@ export class StudentService implements IStudentService {
       });
     }
 
-    student.favorites.push(electiveId);
-    await this.userRepo.update(studentId, student);
+    user.favorites.push(electiveId);
+    await this.userRepo.update(studentId, user);
 
     return ok(true);
   }
 
   public async removeFavorite(studentId: string, electiveId: string): Promise<Result<boolean>> {
-    const student = await this.userRepo.findStudentById(studentId);
-    if (!student) {
+    const user = await this.userRepo.findById(studentId);
+    if (!user || user.role !== "student") {
       this.logger.warn(`Student with id ${studentId} not found`);
       return err("STUDENT_NOT_FOUND", "Student not found", { studentId });
     }
 
-    // Normalize stored favorites to strings to handle ObjectId and other types
-    const favoriteList = student.favorites ?? [];
-    const favs = Array.isArray(favoriteList) ? (favoriteList as unknown[]) : [];
-    const favStrings = this.normalizeIdArray(favs);
+    // TypeScript narrows user to StudentUser after the role check
+    const favoriteIds = this.normalizeIds((user.favorites ?? []) as unknown[]);
 
-    if (!favStrings.includes(electiveId)) {
+    if (!favoriteIds.includes(electiveId)) {
       this.logger.warn(`Elective ${electiveId} is not a favorite of student ${studentId}`);
       return err("ELECTIVE_NOT_FAVORITE", "Elective is not a favorite", { studentId, electiveId });
     }
 
-    // Remove all entries that normalize to the given electiveId and persist as strings
-    const newFavStrings = favStrings.filter((s) => s !== electiveId);
-    student.favorites = newFavStrings;
-    await this.userRepo.update(studentId, student);
+    user.favorites = favoriteIds.filter((id) => id !== electiveId);
+    await this.userRepo.update(studentId, user);
 
     return ok(true);
   }
 
   public async isFavorite(studentId: string, electiveId: string): Promise<Result<boolean>> {
-    const student = await this.userRepo.findStudentById(studentId);
-    if (!student) {
+    const user = await this.userRepo.findById(studentId);
+    if (!user || user.role !== "student") {
       this.logger.warn(`Student with id ${studentId} not found`);
       return err("STUDENT_NOT_FOUND", "Student not found", { studentId });
     }
 
-    const favoriteList = student.favorites ?? [];
-    const favStrings = Array.isArray(favoriteList)
-      ? this.normalizeIdArray(favoriteList as unknown[])
-      : [];
-
-    return ok(favStrings.includes(electiveId));
+    // TypeScript narrows user to StudentUser after the role check
+    const favoriteIds = this.normalizeIds((user.favorites ?? []) as unknown[]);
+    return ok(favoriteIds.includes(electiveId));
   }
 }

@@ -72,10 +72,17 @@ export class UserService implements IUserService {
       return err("USER_NOT_FOUND", "User not found", { userId: id });
     }
 
-    const isEnrolledInElectives = false; // TODO: Replace this with actual check
-    if (isEnrolledInElectives) {
-      this.logger.warn(`Cannot delete user with id ${id} who is enrolled in electives`);
-      return err("USER_DELETE_FAILED", "Cannot delete user who is enrolled in electives", {
+    // Check if user is a student or teacher with active data
+    if (user.role === "student" && "favorites" in user && user.favorites.length > 0) {
+      this.logger.warn(`Cannot delete student with id ${id} who has favorites`);
+      return err("USER_DELETE_FAILED", "Cannot delete student with active favorites", {
+        userId: id,
+      });
+    }
+
+    if (user.role === "teacher" && "modulesGiven" in user && user.modulesGiven.length > 0) {
+      this.logger.warn(`Cannot delete teacher with id ${id} who teaches electives`);
+      return err("USER_DELETE_FAILED", "Cannot delete teacher with active electives", {
         userId: id,
       });
     }
