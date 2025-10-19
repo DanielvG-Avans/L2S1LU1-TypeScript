@@ -22,10 +22,53 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+interface ElectiveFormDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
+  mode: "create" | "edit";
+  elective?: Elective; // Required when mode is "edit"
+}
+
 interface ElectiveCreateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+}
+
+export function ElectiveCreateDialog({ open, onOpenChange, onSuccess }: ElectiveCreateDialogProps) {
+  return (
+    <ElectiveFormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      onSuccess={onSuccess}
+      mode="create"
+    />
+  );
+}
+
+interface ElectiveEditDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  elective: Elective;
+  onSuccess?: () => void;
+}
+
+export function ElectiveEditDialog({
+  open,
+  onOpenChange,
+  elective,
+  onSuccess,
+}: ElectiveEditDialogProps) {
+  return (
+    <ElectiveFormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      onSuccess={onSuccess}
+      mode="edit"
+      elective={elective}
+    />
+  );
 }
 
 interface ElectiveFormData {
@@ -58,27 +101,48 @@ const initialFormData: ElectiveFormData = {
   teacherIds: [],
 };
 
-export default function ElectiveCreateDialog({
+function ElectiveFormDialog({
   open,
   onOpenChange,
   onSuccess,
-}: ElectiveCreateDialogProps) {
+  mode,
+  elective,
+}: ElectiveFormDialogProps) {
   const [formData, setFormData] = useState<ElectiveFormData>(initialFormData);
   const [loading, setLoading] = useState(false);
   const [teachers, setTeachers] = useState<TeacherUser[]>([]);
   const [loadingTeachers, setLoadingTeachers] = useState(false);
 
-  // Fetch existing electives to get unique values for dropdowns
   const { electives } = useElectives();
 
-  // Fetch all teachers for assignment
+  useEffect(() => {
+    if (mode === "edit" && elective && open) {
+      setFormData({
+        code: elective.code || "",
+        name: elective.name || "",
+        description: elective.description || "",
+        provider: elective.provider || "",
+        period: elective.period || "",
+        duration: elective.duration || "",
+        credits: elective.credits?.toString() || "",
+        language: elective.language || "NL",
+        location: elective.location || "",
+        level: elective.level || "",
+        tags: elective.tags?.join(", ") || "",
+        teacherIds:
+          elective.teachers?.map((t) => t.id).filter((id): id is string => id != null) || [],
+      });
+    } else if (mode === "create" && open) {
+      setFormData(initialFormData);
+    }
+  }, [elective, open, mode]);
+
   useEffect(() => {
     const fetchTeachers = async () => {
       setLoadingTeachers(true);
       try {
         const users = await userApi.getAll();
-        const teacherUsers = users.filter((user): user is TeacherUser => user.role === "teacher");
-        setTeachers(teacherUsers);
+        setTeachers(users.filter((user): user is TeacherUser => user.role === "teacher"));
       } catch (error) {
         console.error("Failed to fetch teachers:", error);
         toast.error("Failed to load teachers");
@@ -87,25 +151,18 @@ export default function ElectiveCreateDialog({
       }
     };
 
-    if (open) {
-      fetchTeachers();
-    }
+    if (open) fetchTeachers();
   }, [open]);
 
-  // Helper to get unique values from existing electives
   const getUniqueValues = useMemo(() => {
     return (key: keyof Elective): string[] => {
       if (!electives) return [];
-
       const values = electives
         .map((elective) => {
           const value = elective[key];
-          if (Array.isArray(value)) return undefined;
-          if (value === undefined || value === null) return undefined;
-          return String(value);
+          return Array.isArray(value) ? undefined : value ? String(value) : undefined;
         })
-        .filter((v): v is string => !!v);
-
+        .filter(Boolean) as string[];
       return Array.from(new Set(values)).sort();
     };
   }, [electives]);
@@ -117,7 +174,6 @@ export default function ElectiveCreateDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation
     if (
       !formData.code ||
       !formData.name ||
@@ -139,9 +195,14 @@ export default function ElectiveCreateDialog({
       return;
     }
 
+    if (mode === "edit" && !elective?.id) {
+      toast.error("Invalid elective ID");
+      return;
+    }
+
     setLoading(true);
     try {
-      const electiveData: Omit<Elective, "id" | "createdAt" | "updatedAt"> = {
+      const baseElectiveData = {
         code: formData.code,
         name: formData.name,
         description: formData.description,
@@ -155,54 +216,93 @@ export default function ElectiveCreateDialog({
         tags: formData.tags ? formData.tags.split(",").map((tag) => tag.trim()) : undefined,
       };
 
-      // Create the elective
-      const createdElective = await electivesApi.create(electiveData);
-      
-      // Assign teachers to the elective
-      if (formData.teacherIds.length > 0 && createdElective.id) {
-        const assignmentPromises = formData.teacherIds.map((teacherId) =>
-          electivesApi.assignTeacher(createdElective.id!, teacherId)
-        );
-        
-        try {
-          await Promise.all(assignmentPromises);
-        } catch (assignError) {
-          console.error("Failed to assign some teachers:", assignError);
-          toast.warning("Elective created but some teachers could not be assigned");
+      if (mode === "create") {
+        const createdElective = await electivesApi.create(baseElectiveData);
+        if (formData.teacherIds.length > 0 && createdElective.id) {
+          try {
+            await Promise.all(
+              formData.teacherIds.map((teacherId) =>
+                electivesApi.assignTeacher(createdElective.id!, teacherId),
+              ),
+            );
+          } catch (assignError) {
+            console.error("Failed to assign some teachers:", assignError);
+            toast.warning("Elective created but some teachers could not be assigned");
+          }
         }
+        toast.success("Elective created successfully!");
+      } else {
+        await electivesApi.update(elective!.id!, baseElectiveData);
+
+        const currentTeacherIds =
+          elective!.teachers?.map((t) => t.id).filter((id): id is string => id != null) || [];
+        const newTeacherIds = formData.teacherIds;
+        const teachersToAdd = newTeacherIds.filter((id) => !currentTeacherIds.includes(id));
+        const teachersToRemove = currentTeacherIds.filter((id) => !newTeacherIds.includes(id));
+
+        if (teachersToAdd.length > 0) {
+          try {
+            await Promise.all(
+              teachersToAdd.map((teacherId) =>
+                electivesApi.assignTeacher(elective!.id!, teacherId),
+              ),
+            );
+          } catch (assignError) {
+            console.error("Failed to assign some teachers:", assignError);
+            toast.warning("Elective updated but some teachers could not be assigned");
+          }
+        }
+
+        if (teachersToRemove.length > 0) {
+          try {
+            await Promise.all(
+              teachersToRemove.map((teacherId) =>
+                electivesApi.unassignTeacher(elective!.id!, teacherId),
+              ),
+            );
+          } catch (unassignError) {
+            console.error("Failed to unassign some teachers:", unassignError);
+            toast.warning("Elective updated but some teachers could not be unassigned");
+          }
+        }
+
+        toast.success("Elective updated successfully!");
       }
 
-      toast.success("Elective created successfully!");
-
-      // Reset form and close dialog
       setFormData(initialFormData);
       onOpenChange(false);
-
-      // Call success callback to refresh the list
-      if (onSuccess) {
-        onSuccess();
-      }
+      onSuccess?.();
     } catch (error) {
-      console.error("Failed to create elective:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to create elective");
+      console.error(`Failed to ${mode} elective:`, error);
+      toast.error(error instanceof Error ? error.message : `Failed to ${mode} elective`);
     } finally {
       setLoading(false);
     }
   };
 
+  const dialogTitle = mode === "create" ? "Create New Elective" : "Edit Elective";
+  const dialogDescription =
+    mode === "create"
+      ? "Add a new elective to the system. All fields are required unless marked optional."
+      : "Update the elective information. All fields are required unless marked optional.";
+  const submitButtonText = loading
+    ? mode === "create"
+      ? "Creating..."
+      : "Updating..."
+    : mode === "create"
+      ? "Create Elective"
+      : "Update Elective";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create New Elective</DialogTitle>
-          <DialogDescription>
-            Add a new elective to the system. All fields are required unless marked optional.
-          </DialogDescription>
+          <DialogTitle>{dialogTitle}</DialogTitle>
+          <DialogDescription>{dialogDescription}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Code */}
             <div className="space-y-2">
               <label className="text-sm font-medium" htmlFor="code">
                 Code <span className="text-destructive">*</span>
@@ -215,8 +315,6 @@ export default function ElectiveCreateDialog({
                 required
               />
             </div>
-
-            {/* Credits */}
             <div className="space-y-2">
               <label className="text-sm font-medium" htmlFor="credits">
                 Credits (EC) <span className="text-destructive">*</span>
@@ -233,7 +331,6 @@ export default function ElectiveCreateDialog({
             </div>
           </div>
 
-          {/* Name */}
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="name">
               Name <span className="text-destructive">*</span>
@@ -247,7 +344,6 @@ export default function ElectiveCreateDialog({
             />
           </div>
 
-          {/* Description */}
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="description">
               Description <span className="text-destructive">*</span>
@@ -264,7 +360,6 @@ export default function ElectiveCreateDialog({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Provider */}
             <div className="space-y-2">
               <label className="text-sm font-medium" htmlFor="provider">
                 Provider <span className="text-destructive">*</span>
@@ -285,8 +380,6 @@ export default function ElectiveCreateDialog({
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Location */}
             <div className="space-y-2">
               <label className="text-sm font-medium" htmlFor="location">
                 Location <span className="text-destructive">*</span>
@@ -310,7 +403,6 @@ export default function ElectiveCreateDialog({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Period */}
             <div className="space-y-2">
               <label className="text-sm font-medium" htmlFor="period">
                 Period <span className="text-destructive">*</span>
@@ -331,8 +423,6 @@ export default function ElectiveCreateDialog({
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Duration */}
             <div className="space-y-2">
               <label className="text-sm font-medium" htmlFor="duration">
                 Duration <span className="text-destructive">*</span>
@@ -353,8 +443,6 @@ export default function ElectiveCreateDialog({
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Level */}
             <div className="space-y-2">
               <label className="text-sm font-medium" htmlFor="level">
                 Level <span className="text-destructive">*</span>
@@ -377,7 +465,6 @@ export default function ElectiveCreateDialog({
             </div>
           </div>
 
-          {/* Language */}
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="language">
               Language <span className="text-destructive">*</span>
@@ -390,16 +477,22 @@ export default function ElectiveCreateDialog({
                 <SelectValue placeholder="Select a language" />
               </SelectTrigger>
               <SelectContent>
-                {getUniqueValues("language").map((language) => (
-                  <SelectItem key={language} value={language}>
-                    {language}
-                  </SelectItem>
-                ))}
+                {mode === "create" ? (
+                  getUniqueValues("language").map((language) => (
+                    <SelectItem key={language} value={language}>
+                      {language}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <>
+                    <SelectItem value="NL">Nederlands</SelectItem>
+                    <SelectItem value="EN">English</SelectItem>
+                  </>
+                )}
               </SelectContent>
             </Select>
           </div>
 
-          {/* Tags */}
           <div className="space-y-2">
             <label className="text-sm font-medium" htmlFor="tags">
               Tags <span className="text-muted-foreground">(optional, comma-separated)</span>
@@ -412,10 +505,10 @@ export default function ElectiveCreateDialog({
             />
           </div>
 
-          {/* Teachers */}
           <div className="space-y-2">
             <label className="text-sm font-medium">
-              Teachers <span className="text-muted-foreground">(optional)</span>
+              {mode === "create" ? "Teachers" : "Assign Teachers"}{" "}
+              <span className="text-muted-foreground">(optional)</span>
             </label>
             <div className="border border-input rounded-md p-3 max-h-48 overflow-y-auto bg-background">
               {loadingTeachers ? (
@@ -446,9 +539,7 @@ export default function ElectiveCreateDialog({
                       <span className="text-sm">
                         {teacher.firstName} {teacher.lastName}
                       </span>
-                      <span className="text-xs text-muted-foreground ml-auto">
-                        {teacher.email}
-                      </span>
+                      <span className="text-xs text-muted-foreground ml-auto">{teacher.email}</span>
                     </label>
                   ))}
                 </div>
@@ -471,7 +562,7 @@ export default function ElectiveCreateDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create Elective"}
+              {submitButtonText}
             </Button>
           </DialogFooter>
         </form>

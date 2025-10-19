@@ -152,6 +152,24 @@ export const electivesApi = {
   },
 
   /**
+   * Update an existing elective (admin only)
+   */
+  update: async (
+    electiveId: string,
+    electiveData: Partial<Omit<Elective, "id" | "createdAt" | "updatedAt">>,
+  ): Promise<Elective> => {
+    const response = await fetchBackend(`/api/electives/${electiveId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(electiveData),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to update elective: ${response.statusText}`);
+    }
+    return (await response.json()) as Elective;
+  },
+
+  /**
    * Assign a teacher to an elective (admin only)
    */
   assignTeacher: async (electiveId: string, teacherId: string): Promise<void> => {
