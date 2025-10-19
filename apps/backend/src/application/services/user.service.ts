@@ -49,7 +49,7 @@ export class UserService implements IUserService {
     return ok(created);
   }
 
-  public async updateUser(id: string, data: User): Promise<Result<User>> {
+  public async updateUser(id: string, data: User | Partial<User>): Promise<Result<User>> {
     const user = await this.userRepo.findById(id);
     if (!user) {
       this.logger.warn(`User with id ${id} not found`);
@@ -70,6 +70,14 @@ export class UserService implements IUserService {
     if (!user) {
       this.logger.warn(`User with id ${id} not found`);
       return err("USER_NOT_FOUND", "User not found", { userId: id });
+    }
+
+    const isEnrolledInElectives = false; // TODO: Replace this with actual check
+    if (isEnrolledInElectives) {
+      this.logger.warn(`Cannot delete user with id ${id} who is enrolled in electives`);
+      return err("USER_DELETE_FAILED", "Cannot delete user who is enrolled in electives", {
+        userId: id,
+      });
     }
 
     const deleted = await this.userRepo.delete(id);

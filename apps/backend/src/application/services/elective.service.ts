@@ -50,7 +50,10 @@ export class ElectiveService implements IElectiveService {
     return ok(created);
   }
 
-  public async updateElective(id: string, data: Elective): Promise<Result<Elective>> {
+  public async updateElective(
+    id: string,
+    data: Elective | Partial<Elective>,
+  ): Promise<Result<Elective>> {
     const elective = await this.electiveRepo.findById(id);
     if (!elective) {
       this.logger.warn(`Elective with id ${id} not found`);

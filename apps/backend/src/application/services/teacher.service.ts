@@ -18,7 +18,7 @@ export class TeacherService implements ITeacherService {
     private readonly electiveService: IElectiveService,
   ) {}
 
-  public async getModulesGiven(teacherId: string): Promise<Result<Elective[]>> {
+  public async getElectivesGiven(teacherId: string): Promise<Result<Elective[]>> {
     const teacher = await this.userRepo.findTeacherById(teacherId);
     if (!teacher) {
       this.logger.warn(`Teacher with id ${teacherId} not found`);
