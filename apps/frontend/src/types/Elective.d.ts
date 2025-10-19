@@ -1,3 +1,5 @@
+import type { User } from "./User";
+
 export interface Elective {
   id?: string;
   code: string;
@@ -11,6 +13,7 @@ export interface Elective {
   location: string; // e.g. "Breda"
   level: string; // e.g. "NLQF5"
   tags?: string[]; // optional, for filtering/recommendations
+  teachers?: User[]; // list of teachers teaching this elective
   createdAt?: string;
   updatedAt?: string;
 }

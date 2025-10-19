@@ -125,7 +125,6 @@ export class UserController {
         email: createUserDto.email,
         role: "teacher",
         passwordHash: createUserDto.password, // Pass plain password, service will hash it
-        modulesGiven: [],
       };
     } else {
       userData = {

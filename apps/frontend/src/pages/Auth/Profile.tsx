@@ -7,6 +7,7 @@ import ErrorState from "@/components/ErrorState";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Loading from "@/components/Loading";
+import { useElectives } from "@/hooks/useElectives";
 import Cookies from "js-cookie";
 import { toast } from "sonner";
 
@@ -238,70 +239,88 @@ const StudentProfile = ({ user }: { user: StudentUser }) => (
 // ============================================================================
 // 👨‍🏫 TEACHER PROFILE COMPONENT
 // ============================================================================
-const TeacherProfile = ({ user }: { user: TeacherUser }) => (
-  <div className="space-y-4">
-    <h2 className="text-xl font-semibold">📚 Modules Teaching</h2>
+const TeacherProfile = ({ user }: { user: TeacherUser }) => {
+  const { electives, loading } = useElectives();
 
-    {(!user.modulesGiven || user.modulesGiven.length === 0) && (
-      <Card className="rounded-2xl border border-border/40 bg-gradient-to-b from-background to-muted/10">
-        <CardHeader>
-          <CardTitle className="text-lg">No modules assigned</CardTitle>
-          <CardDescription>You are not currently teaching any modules.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col items-start sm:flex-row sm:items-center gap-4">
-          <div className="flex-1 text-sm text-muted-foreground">
-            Contact an administrator to get assigned to modules.
-          </div>
-        </CardContent>
-      </Card>
-    )}
+  // Filter electives where this teacher is assigned
+  const teacherElectives = (electives || []).filter((elective) =>
+    elective.teachers?.some((teacher) => teacher.id === user.id),
+  );
 
-    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      {user.modulesGiven?.map((elective) => (
-        <Card
-          key={elective.id}
-          className="rounded-2xl border border-border/40 hover:border-primary/50 transition-all hover:shadow-md"
-        >
+  if (loading) {
+    return <Loading />;
+  }
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-xl font-semibold">📚 Modules Teaching</h2>
+
+      {teacherElectives.length === 0 && (
+        <Card className="rounded-2xl border border-border/40 bg-gradient-to-b from-background to-muted/10">
           <CardHeader>
-            <CardTitle className="text-base line-clamp-1">{elective.name}</CardTitle>
-            <CardDescription className="text-xs text-muted-foreground">
-              {elective.code} • {elective.provider}
-            </CardDescription>
+            <CardTitle className="text-lg">No modules assigned</CardTitle>
+            <CardDescription>You are not currently teaching any modules.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <p className="text-muted-foreground line-clamp-3">
-              {elective.description || "No description available."}
-            </p>
-            <div className="flex flex-wrap gap-1 pt-2">
-              {elective.language && (
-                <Badge variant="secondary" className="text-xs">
-                  {elective.language}
-                </Badge>
-              )}
-              {elective.credits && (
-                <Badge variant="outline" className="text-xs">
-                  {elective.credits} EC
-                </Badge>
-              )}
-              {elective.period && (
-                <Badge variant="secondary" className="text-xs">
-                  {elective.period}
-                </Badge>
-              )}
+          <CardContent className="flex flex-col items-start sm:flex-row sm:items-center gap-4">
+            <div className="flex-1 text-sm text-muted-foreground">
+              Contact an administrator to get assigned to modules.
             </div>
-            <Button
-              variant="outline"
-              className="w-full mt-2"
-              onClick={() => (window.location.href = `/electives/${elective.id}`)}
-            >
-              View Details →
-            </Button>
           </CardContent>
         </Card>
-      ))}
+      )}
+
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {teacherElectives.map((elective) => (
+          <Card
+            key={elective.id}
+            className="rounded-2xl border border-border/40 hover:border-primary/50 transition-all hover:shadow-md"
+          >
+            <CardHeader>
+              <CardTitle className="text-base line-clamp-1">{elective.name}</CardTitle>
+              <CardDescription className="text-xs text-muted-foreground">
+                {elective.code} • {elective.provider}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <p className="text-muted-foreground line-clamp-3">
+                {elective.description || "No description available."}
+              </p>
+              <div className="flex flex-wrap gap-1 pt-2">
+                {elective.language && (
+                  <Badge variant="secondary" className="text-xs">
+                    {elective.language}
+                  </Badge>
+                )}
+                {elective.location && (
+                  <Badge variant="outline" className="text-xs">
+                    {elective.location}
+                  </Badge>
+                )}
+                {elective.credits && (
+                  <Badge variant="outline" className="text-xs">
+                    {elective.credits} EC
+                  </Badge>
+                )}
+                {elective.period && (
+                  <Badge variant="secondary" className="text-xs">
+                    {elective.period}
+                  </Badge>
+                )}
+              </div>
+              <Button
+                variant="outline"
+                className="w-full mt-2"
+                onClick={() => (window.location.href = `/electives/${elective.id}`)}
+              >
+                View Details →
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // ============================================================================
 // 🧑‍💼 ADMIN PROFILE COMPONENT

@@ -1,5 +1,4 @@
 import { type IElectiveService } from "src/application/ports/elective.port";
-import { type ITeacherService } from "src/application/ports/teacher.port";
 import { type Elective } from "src/domain/elective/elective";
 import { AuthGuard } from "../guards/auth.guard";
 import { RolesGuard } from "../guards/roles.guard";
@@ -33,8 +32,6 @@ export class ElectiveController {
   constructor(
     @Inject(SERVICES.ELECTIVE)
     private readonly electiveService: IElectiveService,
-    @Inject(SERVICES.TEACHER)
-    private readonly teacherService: ITeacherService,
   ) {}
 
   @Post()
@@ -121,7 +118,7 @@ export class ElectiveController {
     @Param("id") electiveId: string,
     @Param("teacherId") teacherId: string,
   ): Promise<{ message: string }> {
-    const result = await this.teacherService.assignElectiveToTeacher(teacherId, electiveId);
+    const result = await this.electiveService.assignTeacherToElective(electiveId, teacherId);
     if (!result.ok) {
       this.logger.warn(`Failed to assign teacher: ${result.error.code}`);
       if (result.error.code === "ALREADY_ASSIGNED") {
@@ -140,7 +137,7 @@ export class ElectiveController {
     @Param("id") electiveId: string,
     @Param("teacherId") teacherId: string,
   ): Promise<{ message: string }> {
-    const result = await this.teacherService.unassignElectiveFromTeacher(teacherId, electiveId);
+    const result = await this.electiveService.unassignTeacherFromElective(electiveId, teacherId);
     if (!result.ok) {
       this.logger.warn(`Failed to unassign teacher: ${result.error.code}`);
       if (result.error.code === "NOT_ASSIGNED") {

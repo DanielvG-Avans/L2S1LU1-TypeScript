@@ -3,6 +3,7 @@ import { IUserService } from "../ports/user.port";
 import { REPOSITORIES } from "../../di-tokens";
 import { Injectable, Inject, Logger } from "@nestjs/common";
 import { type IUserRepository } from "../../domain/user/user.repository.interface";
+import { type IElectiveRepository } from "../../domain/elective/elective.repository.interface";
 import { Result, ok, err } from "../../domain/result";
 import { PasswordUtil } from "../utils/password.util";
 
@@ -14,6 +15,8 @@ export class UserService implements IUserService {
   constructor(
     @Inject(REPOSITORIES.USER)
     private readonly userRepo: IUserRepository,
+    @Inject(REPOSITORIES.ELECTIVE)
+    private readonly electiveRepo: IElectiveRepository,
   ) {}
 
   public async getUserById(id: string): Promise<Result<User>> {
@@ -100,11 +103,15 @@ export class UserService implements IUserService {
       });
     }
 
-    if (user.role === "teacher" && "modulesGiven" in user && user.modulesGiven.length > 0) {
-      this.logger.warn(`Cannot delete teacher with id ${id} who teaches electives`);
-      return err("USER_DELETE_FAILED", "Cannot delete teacher with active electives", {
-        userId: id,
-      });
+    if (user.role === "teacher") {
+      // Check if teacher is assigned to any electives
+      const electives = await this.electiveRepo.findByTeacherId(id);
+      if (electives.length > 0) {
+        this.logger.warn(`Cannot delete teacher with id ${id} who teaches electives`);
+        return err("USER_DELETE_FAILED", "Cannot delete teacher with active electives", {
+          userId: id,
+        });
+      }
     }
 
     const deleted = await this.userRepo.delete(id);

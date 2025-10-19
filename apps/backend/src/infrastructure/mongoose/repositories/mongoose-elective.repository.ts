@@ -24,8 +24,20 @@ export class MongooseElectiveRepository implements IElectiveRepository {
     return doc ? this.toDomain(doc) : null;
   }
 
+  public async findByTeacherId(teacherId: string): Promise<Elective[]> {
+    if (!Types.ObjectId.isValid(teacherId)) return [];
+    const teacherObjectId = new Types.ObjectId(teacherId);
+    const docs = await this.model.find({ teachers: teacherObjectId }).lean().exec();
+    return docs.map((d) => this.toDomain(d));
+  }
+
   public async create(data: Elective): Promise<Elective> {
-    const created = await this.model.create(data as ElectiveModel);
+    // Convert string teachers to ObjectIds
+    const modelData = {
+      ...data,
+      teachers: data.teachers?.map((id) => new Types.ObjectId(id)) || [],
+    };
+    const created = await this.model.create(modelData as ElectiveModel);
     // fetch lean doc to normalize
     const doc = (await this.model.findById(created._id).lean().exec()) as ElectiveModel;
     return this.toDomain(doc);
@@ -33,8 +45,13 @@ export class MongooseElectiveRepository implements IElectiveRepository {
 
   public async update(id: string, data: Elective | Partial<Elective>): Promise<Elective | null> {
     if (!Types.ObjectId.isValid(id)) return null;
+    // Convert string teachers to ObjectIds if present
+    const modelData = {
+      ...data,
+      ...(data.teachers && { teachers: data.teachers.map((id) => new Types.ObjectId(id)) }),
+    };
     const updated = await this.model
-      .findByIdAndUpdate(id, data as Partial<ElectiveModel>, {
+      .findByIdAndUpdate(id, modelData as Partial<ElectiveModel>, {
         new: true,
         runValidators: true,
       })
@@ -50,10 +67,11 @@ export class MongooseElectiveRepository implements IElectiveRepository {
   }
 
   private toDomain(doc: ElectiveModel & { _id?: Types.ObjectId | string }): Elective {
-    const { _id, ...rest } = doc ?? ({} as ElectiveModel);
+    const { _id, teachers, ...rest } = doc ?? ({} as ElectiveModel);
     return {
-      ...(rest as Omit<Elective, "id">),
+      ...(rest as Omit<Elective, "id" | "teachers">),
       id: _id ? String(_id) : undefined,
+      teachers: teachers ? teachers.map((t) => String(t)) : undefined,
     };
   }
 
@@ -64,10 +82,7 @@ export class MongooseElectiveRepository implements IElectiveRepository {
     const studentCount = await this.model.db
       .collection("students")
       .countDocuments({ favorites: objectId });
-    const teacherCount = await this.model.db
-      .collection("teachers")
-      .countDocuments({ modulesGiven: objectId });
 
-    return studentCount > 0 || teacherCount > 0;
+    return studentCount > 0;
   }
 }

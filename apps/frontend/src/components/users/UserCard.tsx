@@ -40,24 +40,14 @@ export function UserCard({ user, onEdit, onDelete }: UserCardProps) {
             </div>
           )}
 
-          {/* Teacher-specific: Modules Given */}
-          {!isStudent &&
-            "modulesGiven" in user &&
-            user.modulesGiven &&
-            user.modulesGiven.length > 0 && (
-              <div className="mt-4">
-                <p className="text-sm font-medium mb-2">
-                  Teaching ({user.modulesGiven.length} electives):
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {user.modulesGiven.map((elective) => (
-                    <Badge key={elective.id} variant="outline">
-                      {elective.name}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
+          {/* Teacher-specific: Note about modules */}
+          {!isStudent && user.role === "teacher" && (
+            <div className="mt-4">
+              <p className="text-sm text-muted-foreground">
+                View electives to see teaching assignments
+              </p>
+            </div>
+          )}
 
           {user.createdAt && (
             <p className="text-xs text-muted-foreground mt-3">

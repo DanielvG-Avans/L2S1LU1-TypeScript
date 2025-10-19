@@ -3,6 +3,7 @@ import { Elective } from "src/domain/elective/elective";
 import { IElectiveService } from "../ports/elective.port";
 import { Injectable, Inject, Logger } from "@nestjs/common";
 import { type IElectiveRepository } from "src/domain/elective/elective.repository.interface";
+import { type IUserRepository } from "src/domain/user/user.repository.interface";
 import { Result, ok, err } from "src/domain/result";
 
 //* Elective Service Implementation
@@ -13,6 +14,8 @@ export class ElectiveService implements IElectiveService {
   constructor(
     @Inject(REPOSITORIES.ELECTIVE)
     private readonly electiveRepo: IElectiveRepository,
+    @Inject(REPOSITORIES.USER)
+    private readonly userRepo: IUserRepository,
   ) {}
 
   public async getAllElectives(): Promise<Result<Elective[]>> {
@@ -90,6 +93,79 @@ export class ElectiveService implements IElectiveService {
       return err("ELECTIVE_DELETE_FAILED", "Failed to delete elective", { electiveId: id });
     }
     this.logger.log(`Elective with id ${id} deleted`);
+    return ok(true);
+  }
+
+  public async assignTeacherToElective(
+    electiveId: string,
+    teacherId: string,
+  ): Promise<Result<boolean>> {
+    // Verify elective exists
+    const elective = await this.electiveRepo.findById(electiveId);
+    if (!elective) {
+      this.logger.warn(`Elective with id ${electiveId} not found`);
+      return err("ELECTIVE_NOT_FOUND", "Elective not found", { electiveId });
+    }
+
+    // Verify teacher exists
+    const user = await this.userRepo.findById(teacherId);
+    if (!user || user.role !== "teacher") {
+      this.logger.warn(`Teacher with id ${teacherId} not found`);
+      return err("TEACHER_NOT_FOUND", "Teacher not found", { teacherId });
+    }
+
+    // Check if already assigned
+    const teacherList = elective.teachers || [];
+    if (teacherList.includes(teacherId)) {
+      this.logger.warn(`Teacher ${teacherId} already assigned to elective ${electiveId}`);
+      return err("ALREADY_ASSIGNED", "Teacher already assigned to this elective");
+    }
+
+    // Add teacher to elective's teachers array
+    const updatedElective = await this.electiveRepo.update(electiveId, {
+      ...elective,
+      teachers: [...teacherList, teacherId],
+    });
+
+    if (!updatedElective) {
+      this.logger.error(`Failed to assign teacher ${teacherId} to elective ${electiveId}`);
+      return err("ASSIGNMENT_FAILED", "Failed to assign teacher to elective");
+    }
+
+    this.logger.log(`Teacher ${teacherId} assigned to elective ${electiveId}`);
+    return ok(true);
+  }
+
+  public async unassignTeacherFromElective(
+    electiveId: string,
+    teacherId: string,
+  ): Promise<Result<boolean>> {
+    // Verify elective exists
+    const elective = await this.electiveRepo.findById(electiveId);
+    if (!elective) {
+      this.logger.warn(`Elective with id ${electiveId} not found`);
+      return err("ELECTIVE_NOT_FOUND", "Elective not found", { electiveId });
+    }
+
+    // Check if assigned
+    const teacherList = elective.teachers || [];
+    if (!teacherList.includes(teacherId)) {
+      this.logger.warn(`Teacher ${teacherId} not assigned to elective ${electiveId}`);
+      return err("NOT_ASSIGNED", "Teacher not assigned to this elective");
+    }
+
+    // Remove teacher from elective's teachers array
+    const updatedElective = await this.electiveRepo.update(electiveId, {
+      ...elective,
+      teachers: teacherList.filter((id) => id !== teacherId),
+    });
+
+    if (!updatedElective) {
+      this.logger.error(`Failed to unassign teacher ${teacherId} from elective ${electiveId}`);
+      return err("UNASSIGNMENT_FAILED", "Failed to unassign teacher from elective");
+    }
+
+    this.logger.log(`Teacher ${teacherId} unassigned from elective ${electiveId}`);
     return ok(true);
   }
 }

@@ -19,7 +19,6 @@ export interface studentUserDTO extends baseUserDTO {
 /** 👨‍🏫 Teacher */
 export interface teacherUserDTO extends baseUserDTO {
   role: "teacher";
-  modulesGiven: string[]; // list of Elective _id's
 }
 
 /** 🧑‍💼 Admin */
