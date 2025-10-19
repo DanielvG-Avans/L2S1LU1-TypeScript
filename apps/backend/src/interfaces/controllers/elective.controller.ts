@@ -1,6 +1,8 @@
 import { type IElectiveService } from "src/application/ports/elective.port";
 import { type Elective } from "src/domain/elective/elective";
 import { AuthGuard } from "../guards/auth.guard";
+import { RolesGuard } from "../guards/roles.guard";
+import { Roles } from "../decorators/roles.decorator";
 import { ApiTags } from "@nestjs/swagger";
 import { SERVICES } from "src/di-tokens";
 import {
@@ -21,7 +23,7 @@ import {
 } from "@nestjs/common";
 
 @ApiTags("electives")
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, RolesGuard)
 @Controller("electives")
 export class ElectiveController {
   private readonly logger: Logger = new Logger(ElectiveController.name);
@@ -32,6 +34,7 @@ export class ElectiveController {
   ) {}
 
   @Post()
+  @Roles("admin")
   @HttpCode(HttpStatus.CREATED)
   public async createElective(@Body() data: Elective): Promise<Elective> {
     const result = await this.electiveService.createElective(data);
@@ -68,6 +71,7 @@ export class ElectiveController {
   }
 
   @Put(":id")
+  @Roles("admin")
   @HttpCode(HttpStatus.OK)
   public async updateElective(@Param("id") id: string, @Body() data: Elective): Promise<Elective> {
     const result = await this.electiveService.updateElective(id, data);
@@ -80,6 +84,7 @@ export class ElectiveController {
   }
 
   @Patch(":id")
+  @Roles("admin")
   @HttpCode(HttpStatus.OK)
   public async partialUpdateElective(
     @Param("id") id: string,
@@ -95,6 +100,7 @@ export class ElectiveController {
   }
 
   @Delete(":id")
+  @Roles("admin")
   @HttpCode(HttpStatus.NO_CONTENT)
   public async deleteElective(@Param("id") id: string): Promise<void> {
     const result = await this.electiveService.deleteElective(id);
