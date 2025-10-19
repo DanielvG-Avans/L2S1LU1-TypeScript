@@ -6,7 +6,7 @@ export interface IUserRepository {
   findById(id: string): Promise<User | null>;
   findByEmail(email: string): Promise<User | null>;
   create(data: User): Promise<User>;
-  update(id: string, data: User): Promise<User | null>;
+  update(id: string, data: User | Partial<User>): Promise<User | null>;
   delete(id: string): Promise<boolean>;
 
   // Role-specific finders
