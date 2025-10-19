@@ -7,7 +7,7 @@ export interface Elective {
   period: string; // e.g. "P3"
   duration: string; // e.g. "1 Periode"
   credits: number;
-  language: "NL" | "EN"; // "NL" or "EN"
+  language: string; // e.g. "Nederlands" or "English"
   location: string; // e.g. "Breda"
   level: string; // e.g. "NLQF5"
   tags?: string[]; // optional, for filtering/recommendations

@@ -133,6 +133,23 @@ export const electivesApi = {
     }
     return data;
   },
+
+  /**
+   * Create a new elective (admin only)
+   */
+  create: async (
+    electiveData: Omit<Elective, "id" | "createdAt" | "updatedAt">,
+  ): Promise<Elective> => {
+    const response = await fetchBackend("/api/electives", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(electiveData),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to create elective: ${response.statusText}`);
+    }
+    return (await response.json()) as Elective;
+  },
 };
 
 // ============================================
