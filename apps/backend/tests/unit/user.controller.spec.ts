@@ -119,7 +119,9 @@ describe("UserController", () => {
 
       const result = await controller.getProfile(req as RequestWithCookies);
 
-      expect(result).toEqual(mockStudent);
+      // passwordHash should be excluded from the response
+      const { passwordHash, ...expectedUser } = mockStudent;
+      expect(result).toEqual(expectedUser);
     });
 
     it("should throw UnauthorizedException when user not found", async () => {
@@ -150,7 +152,9 @@ describe("UserController", () => {
 
       const result = await controller.getAllUsers();
 
-      expect(result).toEqual([mockStudent]);
+      // passwordHash should be excluded from the response
+      const { passwordHash, ...expectedUser } = mockStudent;
+      expect(result).toEqual([expectedUser]);
     });
 
     it("should throw NotFoundException when fetching users fails", async () => {
@@ -174,7 +178,9 @@ describe("UserController", () => {
 
       const result = await controller.createUser(createDto);
 
-      expect(result).toEqual(mockStudent);
+      // passwordHash should be excluded from the response
+      const { passwordHash, ...expectedUser } = mockStudent;
+      expect(result).toEqual(expectedUser);
     });
 
     it("should throw BadRequestException when creation fails", async () => {
@@ -222,7 +228,9 @@ describe("UserController", () => {
 
       const result = await controller.createUser(createDto);
 
-      expect(result).toEqual(teacherUser);
+      // passwordHash should be excluded from the response
+      const { passwordHash, ...expectedUser } = teacherUser;
+      expect(result).toEqual(expectedUser);
     });
 
     it("should create admin user", async () => {
@@ -247,7 +255,9 @@ describe("UserController", () => {
 
       const result = await controller.createUser(createDto);
 
-      expect(result).toEqual(adminUser);
+      // passwordHash should be excluded from the response
+      const { passwordHash, ...expectedUser } = adminUser;
+      expect(result).toEqual(expectedUser);
     });
   });
 
