@@ -5,6 +5,7 @@ import { type IUserRepository } from "../../domain/user/user.repository.interfac
 import { type IElectiveService } from "../ports/elective.port";
 import { Elective } from "../../domain/elective/elective";
 import { Result, ok, err } from "../../domain/result";
+import { normalizeIds } from "../utils/id-normalizer.util";
 
 //* Student Service Implementation
 @Injectable()
@@ -17,37 +18,6 @@ export class StudentService implements IStudentService {
     @Inject(SERVICES.ELECTIVE)
     private readonly electiveService: IElectiveService,
   ) {}
-
-  /**
-   * Normalizes a single ID value to a string.
-   * Handles MongoDB ObjectId and other ID types.
-   */
-  private normalizeId(val: unknown): string {
-    if (typeof val === "string") {
-      return val;
-    }
-
-    // Handle MongoDB ObjectId with toHexString method
-    if (val && typeof (val as { toHexString?: unknown }).toHexString === "function") {
-      return (val as { toHexString: () => string }).toHexString();
-    }
-
-    // Fallback to toString and extract hex if present
-    if (val && typeof (val as { toString?: unknown }).toString === "function") {
-      const str = (val as { toString: () => string }).toString();
-      const hexMatch = str.match(/([0-9a-fA-F]{24})/);
-      return hexMatch ? hexMatch[1] : str;
-    }
-
-    return String(val);
-  }
-
-  /**
-   * Normalizes an array of ID values to strings.
-   */
-  private normalizeIds(vals: unknown[]): string[] {
-    return vals.map((v) => this.normalizeId(v));
-  }
 
   public async getFavorites(studentId: string): Promise<Result<Elective[]>> {
     const user = await this.userRepo.findById(studentId);
@@ -78,7 +48,7 @@ export class StudentService implements IStudentService {
     }
 
     // TypeScript narrows user to StudentUser after the role check
-    const favoriteIds = this.normalizeIds((user.favorites ?? []) as unknown[]);
+    const favoriteIds = normalizeIds((user.favorites ?? []) as unknown[]);
 
     if (favoriteIds.includes(electiveId)) {
       this.logger.warn(`Elective ${electiveId} is already a favorite of student ${studentId}`);
@@ -102,7 +72,7 @@ export class StudentService implements IStudentService {
     }
 
     // TypeScript narrows user to StudentUser after the role check
-    const favoriteIds = this.normalizeIds((user.favorites ?? []) as unknown[]);
+    const favoriteIds = normalizeIds((user.favorites ?? []) as unknown[]);
 
     if (!favoriteIds.includes(electiveId)) {
       this.logger.warn(`Elective ${electiveId} is not a favorite of student ${studentId}`);
@@ -123,7 +93,7 @@ export class StudentService implements IStudentService {
     }
 
     // TypeScript narrows user to StudentUser after the role check
-    const favoriteIds = this.normalizeIds((user.favorites ?? []) as unknown[]);
+    const favoriteIds = normalizeIds((user.favorites ?? []) as unknown[]);
     return ok(favoriteIds.includes(electiveId));
   }
 }

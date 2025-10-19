@@ -65,7 +65,7 @@ export const favoritesApi = {
    * Get all favorites for the current user
    */
   getAll: async (): Promise<Elective[]> => {
-    const response = await fetchBackend("/api/students/me/favorites");
+    const response = await fetchBackend("/api/users/me/favorites");
     if (!response.ok) {
       throw new Error(`Failed to fetch favorites: ${response.statusText}`);
     }
@@ -76,17 +76,20 @@ export const favoritesApi = {
    * Check if an elective is favorited
    */
   checkFavorite: async (electiveId: string): Promise<boolean> => {
-    const response = await fetchBackend(`/api/students/me/favorites/${electiveId}`);
-    return response.ok;
+    const response = await fetchBackend(`/api/users/me/favorites/${electiveId}`);
+    if (!response.ok) {
+      return false;
+    }
+    const data = (await response.json()) as { isFavorite: boolean };
+    return data.isFavorite;
   },
 
   /**
    * Add an elective to favorites
    */
   add: async (electiveId: string): Promise<void> => {
-    const response = await fetchBackend("/api/students/me/favorites", {
+    const response = await fetchBackend(`/api/users/me/favorites/${electiveId}`, {
       method: "POST",
-      body: JSON.stringify({ electiveId }),
     });
     if (!response.ok) {
       throw new Error(`Failed to add favorite: ${response.statusText}`);
@@ -97,9 +100,8 @@ export const favoritesApi = {
    * Remove an elective from favorites
    */
   remove: async (electiveId: string): Promise<void> => {
-    const response = await fetchBackend("/api/students/me/favorites", {
+    const response = await fetchBackend(`/api/users/me/favorites/${electiveId}`, {
       method: "DELETE",
-      body: JSON.stringify({ electiveId }),
     });
     if (!response.ok) {
       throw new Error(`Failed to remove favorite: ${response.statusText}`);
