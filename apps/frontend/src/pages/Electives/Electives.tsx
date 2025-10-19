@@ -1,11 +1,14 @@
 import ElectiveFilter from "@/components/elective/ElectiveFilter";
 import ElectiveCard from "@/components/elective/ElectiveCard";
-import { Search, ArrowUpDown } from "lucide-react";
+import ElectiveCreateDialog from "@/components/elective/ElectiveCreateDialog";
+import { Search, ArrowUpDown, Plus } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import ErrorState from "@/components/ErrorState";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import type { Elective } from "@/types/Elective";
 import { useElectives } from "@/hooks/useElectives";
+import { RoleProtected } from "@/components/auth/RoleProtected";
 import {
   SelectTrigger,
   SelectContent,
@@ -16,13 +19,14 @@ import {
 
 export default function ElectivePage(): React.ReactNode {
   // Use the custom hook for fetching electives
-  const { electives: electivesData, loading, error } = useElectives();
+  const { electives: electivesData, loading, error, refetch } = useElectives();
 
   // UI state
   const [electives, setElectives] = useState<Elective[]>([]);
   const [filtered, setFiltered] = useState<Elective[]>([]);
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("name");
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -158,6 +162,17 @@ export default function ElectivePage(): React.ReactNode {
 
       {/* --- MAIN CONTENT --- */}
       <main className="flex-1 flex flex-col gap-6">
+        {/* Header with Create Button for Admins */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-foreground">Electives</h1>
+          <RoleProtected allowedRoles="admin">
+            <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Create Elective
+            </Button>
+          </RoleProtected>
+        </div>
+
         {/* Search + Sort */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="relative flex-1">
@@ -196,6 +211,13 @@ export default function ElectivePage(): React.ReactNode {
           </div>
         )}
       </main>
+
+      {/* Create Elective Dialog */}
+      <ElectiveCreateDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onSuccess={refetch}
+      />
     </div>
   );
 }
