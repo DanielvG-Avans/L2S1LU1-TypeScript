@@ -130,6 +130,42 @@ const ElectiveDetailPage = () => {
         </CardContent>
       </Card>
 
+      {/* Teachers Card */}
+      {elective.teachers && elective.teachers.length > 0 && (
+        <Card className="border border-border/40 bg-gradient-to-b from-background to-muted/10 rounded-3xl shadow-md hover:shadow-lg transition-shadow">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
+              👨‍🏫 Teaching Staff
+            </CardTitle>
+            <CardDescription className="text-sm text-muted-foreground">
+              {elective.teachers.length === 1 ? "Teacher" : "Teachers"} for this elective
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            <div className="flex flex-wrap gap-3">
+              {elective.teachers.map((teacher, index) => (
+                <div
+                  key={teacher.id || index}
+                  className="flex items-center gap-3 px-4 py-3 bg-muted/50 border border-border/30 rounded-xl hover:bg-muted/70 transition-all"
+                >
+                  <div className="flex items-center justify-center w-10 h-10 bg-primary/10 border border-primary/20 rounded-full text-primary font-semibold">
+                    {teacher.firstName?.[0]}
+                    {teacher.lastName?.[0]}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-foreground">
+                      {teacher.firstName} {teacher.lastName}
+                    </span>
+                    <span className="text-xs text-muted-foreground">{teacher.email}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Footer Actions */}
       <div className="flex justify-between pt-4 gap-2">
         <Button
