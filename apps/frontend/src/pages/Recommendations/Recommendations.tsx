@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Toaster } from "@/components/ui/sonner";
 import type { Elective } from "@/types/Elective";
 
-import { scoreElective } from "./scoring";
+import { scoreElective, diversifyResults } from "./scoring";
 import { deriveFromPersonality } from "./personality";
 import { useElectives } from "../../hooks/useElectives";
 import { useFavorites } from "../../hooks/useFavorites";
@@ -84,8 +84,13 @@ export default function QuestionnaireRecommendations() {
       return { elective: e, score, reasons };
     });
 
+    // Sort by score, then by name
     scored.sort((a, b) => b.score - a.score || a.elective.name.localeCompare(b.elective.name));
-    setResults(scored.slice(0, limit));
+
+    // Apply diversity boosting to prevent all results from same provider
+    const diversified = diversifyResults(scored, 3);
+
+    setResults(diversified.slice(0, limit));
     setStep(6);
   }, [electives, academy, selectedInterests, language, workloadPref, personalityAnswers, limit]);
 
