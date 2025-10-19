@@ -1,17 +1,17 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import type { UserWithElectives } from "@/types/User";
+import type { User, StudentUser, TeacherUser, AdminUser } from "@/types/User";
+import { userApi, favoritesApi } from "@/services/api.service";
 import { useCallback, useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/sonner";
+import ErrorState from "@/components/ErrorState";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { userApi, favoritesApi } from "@/services/api.service";
 import Loading from "@/components/Loading";
-import { toast } from "sonner";
-import ErrorState from "@/components/ErrorState";
 import Cookies from "js-cookie";
+import { toast } from "sonner";
 
 const ProfilePage = () => {
-  const [user, setUser] = useState<UserWithElectives | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -20,13 +20,20 @@ const ProfilePage = () => {
       setError(null);
       setLoading(true);
 
-      // Fetch user and favorites in parallel
-      const [userData, favoritesData] = await Promise.all([userApi.getMe(), favoritesApi.getAll()]);
+      // Fetch user data
+      const userData = await userApi.getMe();
 
-      const data: UserWithElectives = {
-        ...userData,
-        favorites: favoritesData || [],
-      };
+      let data: User = userData;
+
+      // Enrich data based on user role
+      if (userData.role === "student") {
+        const favoritesData = await favoritesApi.getAll();
+        data = {
+          ...userData,
+          favorites: favoritesData || [],
+        } as StudentUser;
+      }
+
       setUser(data);
     } catch (err: any) {
       console.error(err);
@@ -136,83 +143,192 @@ const ProfilePage = () => {
         </CardContent>
       </Card>
 
-      {/* FAVORITES */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">⭐ Favorited Electives</h2>
+      {/* FAVORITES (STUDENT ONLY) */}
+      {user.role === "student" && <StudentProfile user={user as StudentUser} />}
 
-        {(!user.favorites || user.favorites.length === 0) && <EmptyFavorites />}
+      {/* MODULES GIVEN (TEACHER ONLY) */}
+      {user.role === "teacher" && <TeacherProfile user={user as TeacherUser} />}
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {user.favorites?.map((elective) => (
-            <Card
-              key={elective.id}
-              className="rounded-2xl border border-border/40 hover:border-primary/50 transition-all hover:shadow-md"
-            >
-              <CardHeader>
-                <CardTitle className="text-base line-clamp-1">{elective.name}</CardTitle>
-                <CardDescription className="text-xs text-muted-foreground">
-                  {elective.code} • {elective.provider}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <p className="text-muted-foreground line-clamp-3">
-                  {elective.description || "No description available."}
-                </p>
-                <div className="flex flex-wrap gap-1 pt-2">
-                  {elective.language && (
-                    <Badge variant="secondary" className="text-xs">
-                      {elective.language}
-                    </Badge>
-                  )}
-                  {elective.credits && (
-                    <Badge variant="outline" className="text-xs">
-                      {elective.credits} EC
-                    </Badge>
-                  )}
-                  {elective.period && (
-                    <Badge variant="secondary" className="text-xs">
-                      {elective.period}
-                    </Badge>
-                  )}
-                </div>
-                <Button
-                  variant="outline"
-                  className="w-full mt-2"
-                  onClick={() => (window.location.href = `/electives/${elective.id}`)}
-                >
-                  View Details →
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
+      {/* ADMIN INFO */}
+      {user.role === "admin" && <AdminProfile user={user as AdminUser} />}
     </div>
   );
 };
 
 export default ProfilePage;
 
-const EmptyFavorites = () => (
-  <Card className="rounded-2xl border border-border/40 bg-gradient-to-b from-background to-muted/10">
-    <CardHeader>
-      <CardTitle className="text-lg">No favorites yet</CardTitle>
-      <CardDescription>Save electives you're interested in for quick access.</CardDescription>
-    </CardHeader>
-    <CardContent className="flex flex-col items-start sm:flex-row sm:items-center gap-4">
-      <div className="flex-1 text-sm text-muted-foreground">
-        You haven't favorited any electives. Browse electives to find ones you like and mark them as
-        favorites.
-      </div>
-      <div className="flex gap-2">
-        <Button
-          onClick={() => (window.location.href = "/electives")}
-          variant="outline"
-          className="rounded-xl"
+// ============================================================================
+// 👩‍🎓 STUDENT PROFILE COMPONENT
+// ============================================================================
+const StudentProfile = ({ user }: { user: StudentUser }) => (
+  <div className="space-y-4">
+    <h2 className="text-xl font-semibold">⭐ Favorited Electives</h2>
+
+    {(!user.favorites || user.favorites.length === 0) && (
+      <Card className="rounded-2xl border border-border/40 bg-gradient-to-b from-background to-muted/10">
+        <CardHeader>
+          <CardTitle className="text-lg">No favorites yet</CardTitle>
+          <CardDescription>Save electives you're interested in for quick access.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-start sm:flex-row sm:items-center gap-4">
+          <div className="flex-1 text-sm text-muted-foreground">
+            You haven't favorited any electives. Browse electives to find ones you like and mark
+            them as favorites.
+          </div>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => (window.location.href = "/electives")}
+              variant="outline"
+              className="rounded-xl"
+            >
+              Browse Electives
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )}
+
+    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {user.favorites?.map((elective) => (
+        <Card
+          key={elective.id}
+          className="rounded-2xl border border-border/40 hover:border-primary/50 transition-all hover:shadow-md"
         >
-          Browse Electives
-        </Button>
-      </div>
-    </CardContent>
-  </Card>
+          <CardHeader>
+            <CardTitle className="text-base line-clamp-1">{elective.name}</CardTitle>
+            <CardDescription className="text-xs text-muted-foreground">
+              {elective.code} • {elective.provider}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <p className="text-muted-foreground line-clamp-3">
+              {elective.description || "No description available."}
+            </p>
+            <div className="flex flex-wrap gap-1 pt-2">
+              {elective.language && (
+                <Badge variant="secondary" className="text-xs">
+                  {elective.language}
+                </Badge>
+              )}
+              {elective.credits && (
+                <Badge variant="outline" className="text-xs">
+                  {elective.credits} EC
+                </Badge>
+              )}
+              {elective.period && (
+                <Badge variant="secondary" className="text-xs">
+                  {elective.period}
+                </Badge>
+              )}
+            </div>
+            <Button
+              variant="outline"
+              className="w-full mt-2"
+              onClick={() => (window.location.href = `/electives/${elective.id}`)}
+            >
+              View Details →
+            </Button>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  </div>
+);
+
+// ============================================================================
+// 👨‍🏫 TEACHER PROFILE COMPONENT
+// ============================================================================
+const TeacherProfile = ({ user }: { user: TeacherUser }) => (
+  <div className="space-y-4">
+    <h2 className="text-xl font-semibold">📚 Modules Teaching</h2>
+
+    {(!user.modulesGiven || user.modulesGiven.length === 0) && (
+      <Card className="rounded-2xl border border-border/40 bg-gradient-to-b from-background to-muted/10">
+        <CardHeader>
+          <CardTitle className="text-lg">No modules assigned</CardTitle>
+          <CardDescription>You are not currently teaching any modules.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-start sm:flex-row sm:items-center gap-4">
+          <div className="flex-1 text-sm text-muted-foreground">
+            Contact an administrator to get assigned to modules.
+          </div>
+        </CardContent>
+      </Card>
+    )}
+
+    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {user.modulesGiven?.map((elective) => (
+        <Card
+          key={elective.id}
+          className="rounded-2xl border border-border/40 hover:border-primary/50 transition-all hover:shadow-md"
+        >
+          <CardHeader>
+            <CardTitle className="text-base line-clamp-1">{elective.name}</CardTitle>
+            <CardDescription className="text-xs text-muted-foreground">
+              {elective.code} • {elective.provider}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <p className="text-muted-foreground line-clamp-3">
+              {elective.description || "No description available."}
+            </p>
+            <div className="flex flex-wrap gap-1 pt-2">
+              {elective.language && (
+                <Badge variant="secondary" className="text-xs">
+                  {elective.language}
+                </Badge>
+              )}
+              {elective.credits && (
+                <Badge variant="outline" className="text-xs">
+                  {elective.credits} EC
+                </Badge>
+              )}
+              {elective.period && (
+                <Badge variant="secondary" className="text-xs">
+                  {elective.period}
+                </Badge>
+              )}
+            </div>
+            <Button
+              variant="outline"
+              className="w-full mt-2"
+              onClick={() => (window.location.href = `/electives/${elective.id}`)}
+            >
+              View Details →
+            </Button>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  </div>
+);
+
+// ============================================================================
+// 🧑‍💼 ADMIN PROFILE COMPONENT
+// ============================================================================
+const AdminProfile = ({ user: _user }: { user: AdminUser }) => (
+  <div className="space-y-4">
+    <h2 className="text-xl font-semibold">⚙️ Admin Tools</h2>
+
+    <Card className="rounded-2xl border border-border/40 bg-gradient-to-b from-background to-muted/10">
+      <CardHeader>
+        <CardTitle className="text-lg">Admin Access</CardTitle>
+        <CardDescription>You have administrative privileges on this platform.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <p className="text-sm text-muted-foreground">
+          As an administrator, you have full access to manage users, electives, and system settings.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={() => (window.location.href = "/admin")}
+            variant="default"
+            className="rounded-xl"
+          >
+            Go to Admin Panel →
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  </div>
 );

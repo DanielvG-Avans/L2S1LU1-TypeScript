@@ -8,5 +8,7 @@ export const REPOSITORIES = {
 export const SERVICES = {
   AUTH: Symbol("SERVICES.AUTH"),
   USER: Symbol("SERVICES.USER"),
+  STUDENT: Symbol("SERVICES.STUDENT"),
+  TEACHER: Symbol("SERVICES.TEACHER"),
   ELECTIVE: Symbol("SERVICES.ELECTIVE"),
 } as const;

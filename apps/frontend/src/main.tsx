@@ -2,7 +2,7 @@ import RecommendationsPage from "./pages/Recommendations/Recommendations";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import ElectiveDetailPage from "./pages//Electives/ElectiveDetails";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import ElectivesPage from "./pages/Electives/Electives";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import ProfilePage from "@/pages/Auth/Profile";
@@ -13,6 +13,7 @@ import NotFound from "@/pages/NotFound";
 import HomePage from "@/pages/Home";
 import { StrictMode } from "react";
 import "@/main.css";
+import { RoleProtectedRoute } from "./components/auth/RoleProtectedRoute";
 
 const router = createBrowserRouter([
   {
@@ -47,7 +48,9 @@ const router = createBrowserRouter([
         path: "/recommendations",
         element: (
           <ProtectedRoute>
-            <RecommendationsPage />
+            <RoleProtectedRoute allowedRoles={["student"]}>
+              <RecommendationsPage />
+            </RoleProtectedRoute>
           </ProtectedRoute>
         ),
       },

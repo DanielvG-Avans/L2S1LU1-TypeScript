@@ -5,4 +5,7 @@ import { Result } from "src/domain/result";
 export interface IElectiveService {
   getAllElectives(): Promise<Result<Elective[]>>;
   getElectiveById(id: string): Promise<Result<Elective>>;
+  createElective(data: Elective): Promise<Result<Elective>>;
+  updateElective(id: string, data: Elective | Partial<Elective>): Promise<Result<Elective>>;
+  deleteElective(id: string): Promise<Result<boolean>>;
 }

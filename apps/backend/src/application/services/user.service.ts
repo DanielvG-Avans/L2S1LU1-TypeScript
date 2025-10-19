@@ -1,9 +1,7 @@
 import { User } from "src/domain/user/user";
 import { IUserService } from "../ports/user.port";
-import { REPOSITORIES, SERVICES } from "../../di-tokens";
-import { Elective } from "../../domain/elective/elective";
+import { REPOSITORIES } from "../../di-tokens";
 import { Injectable, Inject, Logger } from "@nestjs/common";
-import { type IElectiveService } from "../ports/elective.port";
 import { type IUserRepository } from "../../domain/user/user.repository.interface";
 import { Result, ok, err } from "../../domain/result";
 
@@ -15,31 +13,7 @@ export class UserService implements IUserService {
   constructor(
     @Inject(REPOSITORIES.USER)
     private readonly userRepo: IUserRepository,
-    @Inject(SERVICES.ELECTIVE)
-    private readonly electiveService: IElectiveService,
   ) {}
-
-  // Normalizes a single value to a string (handles ObjectId-like objects and other types)
-  private normalizeIdValue(val: unknown): string {
-    if (typeof val === "string") return val;
-
-    if (val && typeof (val as { toHexString?: unknown }).toHexString === "function") {
-      return (val as { toHexString: () => string }).toHexString();
-    }
-
-    if (val && typeof (val as { toString?: unknown }).toString === "function") {
-      const s = (val as { toString: () => string }).toString();
-      const m = s.match(/([0-9a-fA-F]{24})/);
-      return m ? m[1] : s;
-    }
-
-    return String(val);
-  }
-
-  // Normalizes an array of unknown values into an array of strings
-  private normalizeIdArray(vals: unknown[]): string[] {
-    return vals.map((v) => this.normalizeIdValue(v));
-  }
 
   public async getUserById(id: string): Promise<Result<User>> {
     const user = await this.userRepo.findById(id);
@@ -60,98 +34,63 @@ export class UserService implements IUserService {
     return ok(user);
   }
 
-  public async getUserFavorites(userId: string): Promise<Result<Elective[]>> {
-    const user = await this.userRepo.findById(userId);
-    if (!user) {
-      this.logger.warn(`User with id ${userId} not found`);
-      return err("USER_NOT_FOUND", "User not found", { userId });
+  public async createUser(data: User): Promise<Result<User>> {
+    if (!data) {
+      this.logger.warn("No user data provided for creation");
+      return err("NO_USER_DATA", "No user data provided");
     }
 
-    const favoriteList = user.favorites || [];
-    const favorites: Elective[] = [];
-
-    for (const electiveId of favoriteList) {
-      const electiveResult = await this.electiveService.getElectiveById(electiveId);
-      if (electiveResult.ok) {
-        favorites.push(electiveResult.data);
-      }
+    const created = await this.userRepo.create(data);
+    if (!created) {
+      this.logger.error("Failed to create user");
+      return err("USER_CREATE_FAILED", "Failed to create user");
     }
 
-    return ok(favorites);
+    return ok(created);
   }
 
-  public async addElectiveToFavorites(
-    userId: string,
-    electiveId: string,
-  ): Promise<Result<boolean>> {
-    const user = await this.userRepo.findById(userId);
+  public async updateUser(id: string, data: User | Partial<User>): Promise<Result<User>> {
+    const user = await this.userRepo.findById(id);
     if (!user) {
-      this.logger.warn(`User with id ${userId} not found`);
-      return err("USER_NOT_FOUND", "User not found", { userId });
+      this.logger.warn(`User with id ${id} not found`);
+      return err("USER_NOT_FOUND", "User not found", { userId: id });
     }
 
-    // Normalize stored favorites to strings to handle ObjectId and other types
-    const favoriteList = user.favorites ?? [];
-    const favs = Array.isArray(favoriteList) ? (favoriteList as unknown[]) : [];
-    const favStrings = this.normalizeIdArray(favs);
+    const updated = await this.userRepo.update(id, data);
+    if (!updated) {
+      this.logger.error(`Failed to update user with id ${id}`);
+      return err("USER_UPDATE_FAILED", "Failed to update user", { userId: id });
+    }
 
-    if (favStrings.includes(electiveId)) {
-      this.logger.warn(`Elective with id ${electiveId} is already a favorite of user ${userId}`);
-      return err("ELECTIVE_ALREADY_FAVORITE", "Elective is already a favorite", {
-        userId,
-        electiveId,
+    return ok(updated);
+  }
+
+  public async deleteUser(id: string): Promise<Result<boolean>> {
+    const user = await this.userRepo.findById(id);
+    if (!user) {
+      this.logger.warn(`User with id ${id} not found`);
+      return err("USER_NOT_FOUND", "User not found", { userId: id });
+    }
+
+    // Check if user is a student or teacher with active data
+    if (user.role === "student" && "favorites" in user && user.favorites.length > 0) {
+      this.logger.warn(`Cannot delete student with id ${id} who has favorites`);
+      return err("USER_DELETE_FAILED", "Cannot delete student with active favorites", {
+        userId: id,
       });
     }
 
-    user.favorites = user.favorites || [];
-    user.favorites.push(electiveId);
-    await this.userRepo.update(userId, user);
-
-    return ok(true);
-  }
-
-  public async removeElectiveFromFavorites(
-    userId: string,
-    electiveId: string,
-  ): Promise<Result<boolean>> {
-    const user = await this.userRepo.findById(userId);
-    if (!user) {
-      this.logger.warn(`User with id ${userId} not found`);
-      return err("USER_NOT_FOUND", "User not found", { userId });
+    if (user.role === "teacher" && "modulesGiven" in user && user.modulesGiven.length > 0) {
+      this.logger.warn(`Cannot delete teacher with id ${id} who teaches electives`);
+      return err("USER_DELETE_FAILED", "Cannot delete teacher with active electives", {
+        userId: id,
+      });
     }
 
-    // Normalize stored favorites to strings to handle ObjectId and other types
-    const favoriteList = user.favorites ?? [];
-    const favs = Array.isArray(favoriteList) ? (favoriteList as unknown[]) : [];
-    const favStrings = this.normalizeIdArray(favs);
-
-    if (!favStrings.includes(electiveId)) {
-      this.logger.warn(`Elective with id ${electiveId} is not a favorite of user ${userId}`);
-      return err("ELECTIVE_NOT_FAVORITE", "Elective is not a favorite", { userId, electiveId });
-    }
-
-    // Remove all entries that normalize to the given electiveId and persist as strings
-    const newFavStrings = favStrings.filter((s) => s !== electiveId);
-    user.favorites = newFavStrings;
-    await this.userRepo.update(userId, user);
-
-    return ok(true);
-  }
-
-  public async isElectiveFavorite(userId: string, electiveId: string): Promise<Result<boolean>> {
-    const user = await this.userRepo.findById(userId);
-    if (!user) {
-      this.logger.warn(`User with id ${userId} not found`);
-      return err("USER_NOT_FOUND", "User not found", { userId });
-    }
-
-    const favoriteList = user.favorites ?? [];
-    const favStrings = Array.isArray(favoriteList)
-      ? this.normalizeIdArray(favoriteList as unknown[])
-      : [];
-
-    if (!favStrings.includes(electiveId)) {
-      return ok(false);
+    const deleted = await this.userRepo.delete(id);
+    if (!deleted) {
+      this.logger.error(`Failed to delete user with id ${id}`);
+      return err("USER_DELETE_FAILED", "Failed to delete user", { userId: id });
     }
 
     return ok(true);
