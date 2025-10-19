@@ -1,17 +1,20 @@
 import { type RequestWithCookies, AuthGuard } from "../guards/auth.guard";
 import { type IUserService } from "src/application/ports/user.port";
+import { UserDTO } from "../dtos/user.dto";
 import { ApiTags } from "@nestjs/swagger";
 import { SERVICES } from "src/di-tokens";
 import {
   UnauthorizedException,
+  // NotFoundException,
   Controller,
   UseGuards,
   Inject,
   Logger,
+  // Param,
   Get,
   Req,
+  Post,
 } from "@nestjs/common";
-import { UserWithoutPassword } from "../dtos/user.dto";
 
 @ApiTags("users")
 @UseGuards(AuthGuard)
@@ -24,8 +27,9 @@ export class UserController {
     private readonly userService: IUserService,
   ) {}
 
+  @Post()
   @Get("me")
-  public async me(@Req() req: RequestWithCookies): Promise<UserWithoutPassword> {
+  public async me(@Req() req: RequestWithCookies): Promise<UserDTO> {
     const claims = req.authClaims;
     if (!claims || !claims.sub) {
       this.logger.warn("User not authenticated! No claims found in me()");
@@ -39,7 +43,7 @@ export class UserController {
       throw new UnauthorizedException("Unauthorized");
     }
 
-    const user = userResult.data as UserWithoutPassword;
+    const user = userResult.data as UserDTO;
     return user;
   }
 }
