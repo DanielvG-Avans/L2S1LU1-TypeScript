@@ -36,7 +36,6 @@ coverage/
 coverage-final.json
 nyc_output/
 .vitest/
-jest-*.json
 
 # Logs
 logs/

@@ -40,30 +40,36 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
   const initials = user ? user.firstName[0].toUpperCase() + user.lastName[0].toUpperCase() : "";
 
   return (
-    <header className="bg-background border-b border-border shadow-sm">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+    <header className="bg-background border-b border-border shadow-sm sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Left: Logo */}
           <Link
             to="/"
-            className="flex items-center gap-3 text-foreground no-underline hover:opacity-80 transition-opacity"
+            className="flex items-center gap-2 sm:gap-3 text-foreground no-underline hover:opacity-80 transition-opacity min-w-0 flex-shrink"
             aria-label="Homepage"
           >
             {keuzekompasLogo && (
-              <img src={keuzekompasLogo} alt="Keuzekompas Logo" className="h-8 w-auto" />
+              <img
+                src={keuzekompasLogo}
+                alt="Keuzekompas Logo"
+                className="h-6 sm:h-8 w-auto flex-shrink-0"
+              />
             )}
-            <span className="font-semibold text-lg">Keuzekompas</span>
+            <span className="font-semibold text-sm sm:text-base lg:text-lg truncate">
+              Keuzekompas
+            </span>
           </Link>
 
-          {/* Center: Nav (desktop) */}
-          <nav className="hidden md:flex items-center space-x-6">
+          {/* Center: Nav (desktop/tablet) */}
+          <nav className="hidden md:flex items-center space-x-4 lg:space-x-6">
             {navItems.map((item) => {
               if (!item.roles || (user && item.roles.includes(user.role))) {
                 return (
                   <Link
                     key={item.title}
                     to={item.href}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-sm lg:text-base text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap px-2 py-2"
                   >
                     {item.title}
                   </Link>
@@ -73,23 +79,27 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
           </nav>
 
           {/* Right: Auth / Theme Toggle / Mobile toggle */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
             {/* Theme Toggle - visible on all screen sizes */}
-            <ThemeToggle />
+            <div className="flex-shrink-0">
+              <ThemeToggle />
+            </div>
 
             <div className="hidden md:block">
               {user ? (
                 <div className="relative" ref={profileRef}>
                   <button
                     onClick={() => setProfileOpen((s) => !s)}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors"
+                    className="flex items-center gap-2 px-2 lg:px-3 py-1.5 rounded-full hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors"
                     aria-haspopup="true"
                     aria-expanded={profileOpen}
                   >
-                    <span className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
+                    <span className="w-8 h-8 lg:w-9 lg:h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs lg:text-sm font-medium flex-shrink-0">
                       {initials}
                     </span>
-                    <span className="text-sm text-foreground">{user?.firstName}</span>
+                    <span className="text-sm text-foreground hidden lg:inline">
+                      {user?.firstName}
+                    </span>
                   </button>
 
                   {profileOpen && (
@@ -117,7 +127,7 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
 
             {/* Mobile menu button */}
             <button
-              className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors"
+              className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors min-w-touch min-h-touch"
               onClick={() => setMobileOpen((s) => !s)}
               aria-expanded={mobileOpen}
               aria-label="Toggle menu"
@@ -146,38 +156,50 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
 
       {/* Mobile panel */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-border">
-          <div className="px-4 pt-4 pb-3 space-y-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.title}
-                to={item.href}
-                className="block px-2 py-2 text-foreground rounded hover:bg-accent hover:text-accent-foreground transition-colors"
-              >
-                {item.title}
-              </Link>
-            ))}
+        <div className="md:hidden border-t border-border bg-background">
+          <div className="px-3 sm:px-4 pt-3 pb-4 space-y-1 max-h-[calc(100vh-4rem)] overflow-y-auto">
+            {navItems.map((item) => {
+              if (!item.roles || (user && item.roles.includes(user.role))) {
+                return (
+                  <Link
+                    key={item.title}
+                    to={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className="block px-3 py-3 text-base font-medium text-foreground rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors min-h-touch"
+                  >
+                    {item.title}
+                  </Link>
+                );
+              }
+            })}
 
             {user ? (
-              <div className="pt-2 border-t border-border">
-                <div className="flex items-center gap-3 px-2 py-2">
-                  <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-medium">
+              <div className="pt-3 border-t border-border mt-3">
+                <div className="flex items-center gap-3 px-3 py-2">
+                  <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-medium text-sm">
                     {initials}
                   </div>
-                  <div>
-                    <div className="text-sm font-medium text-foreground">{user?.firstName}</div>
-                    <Link to="/profile" className="text-xs text-muted-foreground hover:underline">
-                      View profile
-                    </Link>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium text-foreground truncate">
+                      {user?.firstName} {user?.lastName}
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate">{user?.email}</div>
                   </div>
                 </div>
-                <div className="px-2 pb-3">
+                <Link
+                  to="/profile"
+                  onClick={() => setMobileOpen(false)}
+                  className="block mx-3 mt-2 px-3 py-2 rounded-md text-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors min-h-touch"
+                >
+                  View profile
+                </Link>
+                <div className="px-3 pb-2 pt-3">
                   <button
                     onClick={() => {
                       setMobileOpen(false);
                       onLogout?.();
                     }}
-                    className="w-full text-left px-3 py-2 rounded-md bg-destructive/10 text-destructive text-sm hover:bg-destructive/20 transition-colors focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                    className="w-full text-left px-3 py-3 rounded-lg bg-destructive/10 text-destructive text-sm font-medium hover:bg-destructive/20 transition-colors focus:ring-2 focus:ring-ring focus:ring-offset-2 min-h-touch"
                   >
                     Logout
                   </button>

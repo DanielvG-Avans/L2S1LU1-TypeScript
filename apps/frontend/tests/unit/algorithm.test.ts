@@ -1,5 +1,6 @@
 // Quick test/demo of the enhanced recommendation algorithm
 
+import { describe, it, expect } from "vitest";
 import {
   scoreElective,
   diversifyResults,
@@ -68,126 +69,154 @@ const mockElectives: Elective[] = [
   },
 ];
 
-// Test 1: Basic scoring
-export function testBasicScoring() {
-  console.log("=== Test 1: Basic Scoring ===");
+describe("Enhanced Recommendation Algorithm", () => {
+  describe("Basic Scoring", () => {
+    it("should score electives based on provided options", () => {
+      const options: ScoringOptions = {
+        academy: "Academie voor Technologie en Design (ATD)",
+        interests: ["AI / ML", "Data"],
+        language: "English",
+        workloadPref: "light",
+      };
 
-  const options: ScoringOptions = {
-    academy: "Academie voor Technologie en Design (ATD)",
-    interests: ["AI / ML", "Data"],
-    language: "English",
-    workloadPref: "light",
-  };
+      const result = scoreElective(mockElectives[0], options);
 
-  const result = scoreElective(mockElectives[0], options);
-  console.log("Elective:", mockElectives[0].name);
-  console.log("Score:", result.score);
-  console.log("Reasons:", result.reasons);
-  console.log("Breakdown:", result.breakdown);
-  console.log("\n");
-}
-
-// Test 2: Content matching
-export function testContentMatching() {
-  console.log("=== Test 2: Content Matching ===");
-
-  const options: ScoringOptions = {
-    interests: ["AI / ML", "Web Development"],
-    workloadPref: "medium",
-  };
-
-  mockElectives.forEach((elective) => {
-    const result = scoreElective(elective, options);
-    console.log(`${elective.name}: ${result.score} points`);
-    console.log(`  Reasons: ${result.reasons.join(", ")}`);
+      expect(result.score).toBeGreaterThan(0);
+      expect(result.reasons).toBeDefined();
+      expect(Array.isArray(result.reasons)).toBe(true);
+      expect(result.breakdown).toBeDefined();
+    });
   });
-  console.log("\n");
-}
 
-// Test 3: Personality derivation
-export function testPersonalityDerivation() {
-  console.log("=== Test 3: Personality Derivation ===");
+  describe("Content Matching", () => {
+    it("should score electives based on interest matching", () => {
+      const options: ScoringOptions = {
+        interests: ["AI / ML", "Web Development"],
+        workloadPref: "medium",
+      };
 
-  // Simulate answers: tech-focused student
-  const answers = ["B", "B", "E", "E", "B"];
-  const interests = ["AI / ML", "Web Development", "Data", "Embedded", "Robotics", "Design"];
+      const results = mockElectives.map((elective) => ({
+        elective,
+        result: scoreElective(elective, options),
+      }));
 
-  const derived = deriveFromPersonality(answers, interests);
-  console.log("Derived academy:", derived.academy);
-  console.log("Derived interests:", derived.interests);
-  console.log("Derived workload:", derived.workloadPref);
-  console.log("\n");
-}
+      expect(results.length).toBe(mockElectives.length);
+      results.forEach(({ result }) => {
+        expect(result.score).toBeGreaterThanOrEqual(0);
+        expect(result.reasons).toBeDefined();
+      });
+    });
 
-// Test 4: Diversity boosting
-export function testDiversityBoosting() {
-  console.log("=== Test 4: Diversity Boosting ===");
+    it("should give higher scores to electives matching interests", () => {
+      const options: ScoringOptions = {
+        interests: ["AI / ML", "Data"],
+        workloadPref: "medium",
+      };
 
-  // Create more electives with same provider
-  const expandedElectives: Elective[] = [
-    ...mockElectives,
-    {
-      code: "ATD201",
-      name: "Advanced Design Thinking",
-      description: "Creative problem solving and innovation",
-      provider: "Academie voor Technologie en Design (ATD)",
-      period: "Q2",
-      duration: "1 periode",
-      credits: 15,
-      language: "Nederlands",
-      location: "Breda",
-      level: "NLQF6",
-      tags: ["Design"],
-    },
-    {
-      code: "ATD202",
-      name: "Prototyping Workshop",
-      description: "Hands-on product development",
-      provider: "Academie voor Technologie en Design (ATD)",
-      period: "Q3",
-      duration: "1 periode",
-      credits: 15,
-      language: "Nederlands",
-      location: "Breda",
-      level: "NLQF5",
-      tags: ["Design", "UX / Product"],
-    },
-  ];
+      const aiElective = scoreElective(mockElectives[0], options); // AI course with AI/ML and Data tags
+      const sustainabilityElective = scoreElective(mockElectives[2], options); // Sustainability course
 
-  const options: ScoringOptions = {
-    academy: "Academie voor Technologie en Design (ATD)",
-    interests: ["Design"],
-    workloadPref: "light",
-  };
+      expect(aiElective.score).toBeGreaterThan(sustainabilityElective.score);
+    });
+  });
 
-  const scored = expandedElectives.map((e) => ({
-    elective: e,
-    ...scoreElective(e, options),
-  }));
+  describe("Personality Derivation", () => {
+    it("should derive preferences from personality answers", () => {
+      const answers = ["B", "B", "E", "E", "B"];
+      const interests = ["AI / ML", "Web Development", "Data", "Embedded", "Robotics", "Design"];
 
-  scored.sort((a, b) => b.score - a.score);
+      const derived = deriveFromPersonality(answers, interests);
 
-  console.log("Before diversity:");
-  scored.forEach((s) => console.log(`  ${s.elective.provider}: ${s.elective.name} (${s.score})`));
+      expect(derived.academy).toBeDefined();
+      expect(derived.interests).toBeDefined();
+      expect(Array.isArray(derived.interests)).toBe(true);
+      expect(derived.workloadPref).toBeDefined();
+      expect(["light", "medium", "heavy"]).toContain(derived.workloadPref);
+    });
+  });
 
-  const diversified = diversifyResults(scored, 2);
+  describe("Diversity Boosting", () => {
+    it("should prioritize top results per provider within limit", () => {
+      const expandedElectives: Elective[] = [
+        ...mockElectives,
+        {
+          code: "ATD201",
+          name: "Advanced Design Thinking",
+          description: "Creative problem solving and innovation",
+          provider: "Academie voor Technologie en Design (ATD)",
+          period: "Q2",
+          duration: "1 periode",
+          credits: 15,
+          language: "Nederlands",
+          location: "Breda",
+          level: "NLQF6",
+          tags: ["Design"],
+        },
+        {
+          code: "ATD202",
+          name: "Prototyping Workshop",
+          description: "Hands-on product development",
+          provider: "Academie voor Technologie en Design (ATD)",
+          period: "Q3",
+          duration: "1 periode",
+          credits: 15,
+          language: "Nederlands",
+          location: "Breda",
+          level: "NLQF5",
+          tags: ["Design", "UX / Product"],
+        },
+      ];
 
-  console.log("\nAfter diversity (max 2 per provider):");
-  diversified.forEach((s) =>
-    console.log(`  ${s.elective.provider}: ${s.elective.name} (${s.score})`),
-  );
-  console.log("\n");
-}
+      const options: ScoringOptions = {
+        academy: "Academie voor Technologie en Design (ATD)",
+        interests: ["Design"],
+        workloadPref: "light",
+      };
 
-// Run all tests
-export function runAllTests() {
-  console.log("🧪 Running Enhanced Recommendation Algorithm Tests\n");
-  testBasicScoring();
-  testContentMatching();
-  testPersonalityDerivation();
-  testDiversityBoosting();
-  console.log("✅ All tests completed!");
-}
+      const scored = expandedElectives.map((e) => ({
+        elective: e,
+        ...scoreElective(e, options),
+      }));
 
-// Uncomment to run tests:
-// runAllTests();
+      scored.sort((a, b) => b.score - a.score);
+
+      const maxPerProvider = 2;
+      const diversified = diversifyResults(scored, maxPerProvider);
+
+      // The function prioritizes diversity in the top results
+      // Count providers in the first portion of results
+      const topResults = diversified.slice(0, Math.min(diversified.length, maxPerProvider * 3));
+      const providerCounts = new Map<string, number>();
+
+      topResults.forEach((item) => {
+        const provider = item.elective.provider;
+        providerCounts.set(provider, (providerCounts.get(provider) || 0) + 1);
+      });
+
+      // Verify diversity is improved (not all from one provider)
+      expect(providerCounts.size).toBeGreaterThan(1);
+      expect(diversified.length).toBeGreaterThan(0);
+    });
+
+    it("should maintain sorted order where possible", () => {
+      const options: ScoringOptions = {
+        interests: ["AI / ML", "Data"],
+        workloadPref: "medium",
+      };
+
+      const scored = mockElectives.map((e) => ({
+        elective: e,
+        ...scoreElective(e, options),
+      }));
+
+      scored.sort((a, b) => b.score - a.score);
+      const diversified = diversifyResults(scored, 2);
+
+      // Diversified results should still be in descending score order (mostly)
+      for (let i = 0; i < diversified.length - 1; i++) {
+        // Allow some tolerance for diversity adjustments
+        expect(diversified[i].score).toBeGreaterThanOrEqual(diversified[i + 1].score - 50);
+      }
+    });
+  });
+});

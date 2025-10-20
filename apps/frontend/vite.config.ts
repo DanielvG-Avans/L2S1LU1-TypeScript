@@ -27,16 +27,74 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         registerType: "autoUpdate",
         includeAssets: ["favicon.ico", "robots.txt", "apple-touch-icon.png"],
+        workbox: {
+          globPatterns: ["**/*.{js,css,html,ico,png,svg,webp}"],
+          runtimeCaching: [
+            {
+              urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+              handler: "CacheFirst",
+              options: {
+                cacheName: "google-fonts-cache",
+                expiration: {
+                  maxEntries: 10,
+                  maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                },
+                cacheableResponse: {
+                  statuses: [0, 200],
+                },
+              },
+            },
+            {
+              urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+              handler: "CacheFirst",
+              options: {
+                cacheName: "gstatic-fonts-cache",
+                expiration: {
+                  maxEntries: 10,
+                  maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                },
+                cacheableResponse: {
+                  statuses: [0, 200],
+                },
+              },
+            },
+            {
+              urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
+              handler: "CacheFirst",
+              options: {
+                cacheName: "images-cache",
+                expiration: {
+                  maxEntries: 50,
+                  maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+                },
+              },
+            },
+          ],
+        },
         manifest: {
-          name: env.VITE_APP_NAME ?? "Vite React App",
-          short_name: env.VITE_APP_SHORT_NAME ?? "ViteApp",
+          name: env.VITE_APP_NAME ?? "Avans Keuzekompas",
+          short_name: env.VITE_APP_SHORT_NAME ?? "Keuzekompas",
+          description: "Avans Keuzekompas - Explore and manage your elective courses",
           start_url: "/",
+          scope: "/",
           display: "standalone",
+          orientation: "any",
           background_color: "#ffffff",
-          theme_color: "#1f2937",
+          theme_color: "#c6002a",
+          categories: ["education", "productivity"],
           icons: [
-            { src: "pwa-192x192.png", sizes: "192x192", type: "image/png" },
-            { src: "pwa-512x512.png", sizes: "512x512", type: "image/png" },
+            {
+              src: "pwa-192x192.png",
+              sizes: "192x192",
+              type: "image/png",
+              purpose: "any maskable",
+            },
+            {
+              src: "pwa-512x512.png",
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "any maskable",
+            },
           ],
         },
       }),

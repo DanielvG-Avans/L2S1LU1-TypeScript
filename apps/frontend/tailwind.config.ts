@@ -6,6 +6,25 @@ module.exports = {
     "./src/**/*.{js,ts,jsx,tsx,html}",
   ],
   theme: {
+    screens: {
+      xs: "475px",
+      // => @media (min-width: 475px) { ... }
+
+      sm: "640px",
+      // => @media (min-width: 640px) { ... }
+
+      md: "768px",
+      // => @media (min-width: 768px) { ... }
+
+      lg: "1024px",
+      // => @media (min-width: 1024px) { ... }
+
+      xl: "1280px",
+      // => @media (min-width: 1280px) { ... }
+
+      "2xl": "1536px",
+      // => @media (min-width: 1536px) { ... }
+    },
     extend: {
       colors: {
         avans: {
@@ -33,9 +52,19 @@ module.exports = {
         18: "4.5rem",
         22: "5.5rem",
         26: "6.5rem",
+        "safe-top": "env(safe-area-inset-top)",
+        "safe-bottom": "env(safe-area-inset-bottom)",
+        "safe-left": "env(safe-area-inset-left)",
+        "safe-right": "env(safe-area-inset-right)",
       },
       borderRadius: {
         lg: "0.75rem",
+      },
+      minHeight: {
+        touch: "44px", // Minimum touch target size for accessibility
+      },
+      minWidth: {
+        touch: "44px", // Minimum touch target size for accessibility
       },
     },
   },

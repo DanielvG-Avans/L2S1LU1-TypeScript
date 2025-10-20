@@ -30,7 +30,9 @@ export const Layout = (): React.ReactNode | null => {
     <>
       <Header user={user} onLogout={onLogout} />
       <main className="min-h-screen bg-background">
-        <Outlet context={{ user }} />
+        <div className="w-full max-w-[100vw] overflow-x-hidden">
+          <Outlet context={{ user }} />
+        </div>
       </main>
       <Toaster richColors closeButton position="top-right" />
     </>
