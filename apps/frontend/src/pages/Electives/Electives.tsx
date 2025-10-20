@@ -122,11 +122,11 @@ export default function ElectivePage(): React.ReactNode {
   };
 
   return (
-    <div className="flex flex-col md:flex-row max-w-7xl mx-auto p-6 gap-6 bg-background min-h-screen">
+    <div className="flex flex-col lg:flex-row max-w-7xl mx-auto p-3 sm:p-4 md:p-6 gap-4 md:gap-6 bg-background min-h-screen">
       {/* --- FILTER SIDEBAR --- */}
-      <aside className="md:w-64 w-full md:sticky md:top-4 self-start md:h-[calc(100vh-2rem)] overflow-y-auto bg-card border border-border rounded-xl shadow-sm p-4">
-        <h2 className="text-lg font-semibold mb-4 text-card-foreground">Filters</h2>
-        <div className="flex flex-col gap-4">
+      <aside className="lg:w-64 w-full lg:sticky lg:top-20 self-start lg:h-[calc(100vh-6rem)] overflow-y-auto bg-card border border-border rounded-xl shadow-sm p-3 sm:p-4">
+        <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-card-foreground">Filters</h2>
+        <div className="flex flex-col gap-3 sm:gap-4">
           <ElectiveFilter
             options={uniqueValues("language")}
             onChange={(value) => setFilters((prev) => ({ ...prev, language: value }))}
@@ -172,22 +172,22 @@ export default function ElectivePage(): React.ReactNode {
       </aside>
 
       {/* --- MAIN CONTENT --- */}
-      <main className="flex-1 flex flex-col gap-6">
+      <main className="flex-1 flex flex-col gap-4 sm:gap-6 min-w-0">
         {/* Header with Create Button for Admins */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">Electives</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Electives</h1>
           <RoleProtected allowedRoles="admin">
-            <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
+            <Button onClick={() => setCreateDialogOpen(true)} className="gap-2 w-full sm:w-auto">
               <Plus className="h-4 w-4" />
-              Create Elective
+              <span className="sm:inline">Create Elective</span>
             </Button>
           </RoleProtected>
         </div>
 
         {/* Search + Sort + Items per page */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex flex-col gap-3">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
             <Input
               placeholder="Search electives..."
               value={query}
@@ -196,9 +196,9 @@ export default function ElectivePage(): React.ReactNode {
             />
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-col xs:flex-row gap-2">
             <Select onValueChange={(value) => setItemsPerPage(Number(value))} defaultValue="10">
-              <SelectTrigger className="w-[100px]">
+              <SelectTrigger className="w-full xs:w-[120px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -210,7 +210,7 @@ export default function ElectivePage(): React.ReactNode {
             </Select>
 
             <Select onValueChange={setSortBy} defaultValue="name">
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-full xs:w-[160px]">
                 <ArrowUpDown className="mr-2 h-4 w-4" />
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
@@ -224,40 +224,41 @@ export default function ElectivePage(): React.ReactNode {
 
         {/* Results Info */}
         {filtered.length > 0 && (
-          <div className="text-sm text-muted-foreground">
+          <div className="text-xs sm:text-sm text-muted-foreground">
             Showing {startIndex + 1}–{Math.min(endIndex, filtered.length)} of {filtered.length}{" "}
             electives
           </div>
         )}
 
         {/* Results Grid */}
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
           {paginatedElectives.map((m) => (
             <ElectiveCard key={m.id} elective={m} />
           ))}
         </div>
 
         {filtered.length === 0 && (
-          <div className="text-center text-muted-foreground mt-20 p-8 bg-card border border-border rounded-lg">
-            <p className="text-lg font-medium text-card-foreground">No electives found</p>
+          <div className="text-center text-muted-foreground mt-10 sm:mt-20 p-6 sm:p-8 bg-card border border-border rounded-lg">
+            <p className="text-base sm:text-lg font-medium text-card-foreground">No electives found</p>
             <p className="text-sm mt-2">Try adjusting your filters or search query.</p>
           </div>
         )}
 
         {/* Pagination Controls */}
         {filtered.length > 0 && totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-6">
+          <div className="flex flex-col xs:flex-row items-center justify-center gap-3 mt-6">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
+              className="w-full xs:w-auto"
             >
               <ChevronLeft className="h-4 w-4" />
-              Previous
+              <span className="ml-1">Previous</span>
             </Button>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 flex-wrap justify-center">
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
                 // Show first page, last page, current page, and pages around current
                 if (
@@ -271,7 +272,7 @@ export default function ElectivePage(): React.ReactNode {
                       variant={currentPage === page ? "default" : "outline"}
                       size="sm"
                       onClick={() => setCurrentPage(page)}
-                      className="w-9"
+                      className="w-9 h-9"
                     >
                       {page}
                     </Button>
@@ -292,8 +293,9 @@ export default function ElectivePage(): React.ReactNode {
               size="sm"
               onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
+              className="w-full xs:w-auto"
             >
-              Next
+              <span className="mr-1">Next</span>
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

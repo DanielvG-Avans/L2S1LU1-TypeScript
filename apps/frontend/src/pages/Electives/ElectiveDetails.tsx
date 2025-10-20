@@ -74,30 +74,30 @@ const ElectiveDetailPage = () => {
     );
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10 space-y-8 bg-background min-h-screen">
+    <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8 md:py-10 space-y-6 sm:space-y-8 bg-background min-h-screen">
       {/* Toast container */}
       <Toaster />
 
       {/* Hero Section */}
-      <div className="relative rounded-3xl overflow-hidden shadow-lg group border border-border">
+      <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg group border border-border">
         <img
           src="/keuzemodule_fallback_16-9.webp"
           alt={`${elective.name} banner`}
-          className="w-full h-64 sm:h-96 object-cover transform group-hover:scale-[1.02] transition-transform duration-500"
+          className="w-full h-48 sm:h-64 md:h-80 lg:h-96 object-cover transform group-hover:scale-[1.02] transition-transform duration-500"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/60 to-transparent backdrop-blur-[2px]" />
-        <div className="absolute bottom-8 left-8 sm:left-10 drop-shadow-lg space-y-1">
-          <h1 className="text-3xl sm:text-4xl font-bold leading-tight text-foreground drop-shadow-md">
+        <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-4 sm:left-6 md:left-8 lg:left-10 drop-shadow-lg space-y-1 right-4 sm:right-6">
+          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold leading-tight text-foreground drop-shadow-md">
             {elective.name}
           </h1>
-          <p className="text-sm sm:text-base text-foreground/90">
+          <p className="text-xs sm:text-sm md:text-base text-foreground/90">
             {elective.code} • {elective.language}
           </p>
         </div>
       </div>
 
       {/* Provider + Meta */}
-      <div className="flex flex-wrap items-center justify-between gap-4 px-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 px-2">
         <ProviderBadge provider={elective.provider} />
         <div className="flex flex-wrap gap-2">
           {meta.map((m) => (
@@ -113,17 +113,17 @@ const ElectiveDetailPage = () => {
       </div>
 
       {/* Description Card */}
-      <Card className="border border-border/40 bg-gradient-to-b from-background to-muted/10 rounded-3xl shadow-md hover:shadow-lg transition-shadow">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
+      <Card className="border border-border/40 bg-gradient-to-b from-background to-muted/10 rounded-2xl sm:rounded-3xl shadow-md hover:shadow-lg transition-shadow">
+        <CardHeader className="pb-2 px-4 sm:px-6">
+          <CardTitle className="text-base sm:text-lg md:text-xl font-semibold tracking-tight text-foreground">
             About this Elective
           </CardTitle>
-          <CardDescription className="text-sm text-muted-foreground">
+          <CardDescription className="text-xs sm:text-sm text-muted-foreground">
             Offered by <span className="font-medium text-foreground">{elective.provider}</span>
           </CardDescription>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="px-4 sm:px-6">
           <p className="text-muted-foreground leading-relaxed whitespace-pre-line text-sm sm:text-base">
             {elective.description?.trim() || "No detailed description available for this elective."}
           </p>
@@ -132,32 +132,32 @@ const ElectiveDetailPage = () => {
 
       {/* Teachers Card */}
       {elective.teachers && elective.teachers.length > 0 && (
-        <Card className="border border-border/40 bg-gradient-to-b from-background to-muted/10 rounded-3xl shadow-md hover:shadow-lg transition-shadow">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
+        <Card className="border border-border/40 bg-gradient-to-b from-background to-muted/10 rounded-2xl sm:rounded-3xl shadow-md hover:shadow-lg transition-shadow">
+          <CardHeader className="pb-2 px-4 sm:px-6">
+            <CardTitle className="text-base sm:text-lg md:text-xl font-semibold tracking-tight text-foreground">
               👨‍🏫 Teaching Staff
             </CardTitle>
-            <CardDescription className="text-sm text-muted-foreground">
+            <CardDescription className="text-xs sm:text-sm text-muted-foreground">
               {elective.teachers.length === 1 ? "Teacher" : "Teachers"} for this elective
             </CardDescription>
           </CardHeader>
 
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             <div className="flex flex-wrap gap-3">
               {elective.teachers.map((teacher, index) => (
                 <div
                   key={teacher.id || index}
-                  className="flex items-center gap-3 px-4 py-3 bg-muted/50 border border-border/30 rounded-xl hover:bg-muted/70 transition-all"
+                  className="flex items-center gap-3 px-3 sm:px-4 py-2 sm:py-3 bg-muted/50 border border-border/30 rounded-xl hover:bg-muted/70 transition-all"
                 >
-                  <div className="flex items-center justify-center w-10 h-10 bg-primary/10 border border-primary/20 rounded-full text-primary font-semibold">
+                  <div className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 bg-primary/10 border border-primary/20 rounded-full text-primary font-semibold text-xs sm:text-sm">
                     {teacher.firstName?.[0]}
                     {teacher.lastName?.[0]}
                   </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-foreground">
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-xs sm:text-sm font-medium text-foreground truncate">
                       {teacher.firstName} {teacher.lastName}
                     </span>
-                    <span className="text-xs text-muted-foreground">{teacher.email}</span>
+                    <span className="text-xs text-muted-foreground truncate">{teacher.email}</span>
                   </div>
                 </div>
               ))}
@@ -167,22 +167,22 @@ const ElectiveDetailPage = () => {
       )}
 
       {/* Footer Actions */}
-      <div className="flex justify-between pt-4 gap-2">
+      <div className="flex flex-col sm:flex-row sm:justify-between pt-4 gap-3">
         <Button
           variant="outline"
           onClick={() => navigate(location.state?.from ?? "/electives")}
-          className="rounded-xl border-border/50 hover:border-primary/50 transition-all"
+          className="rounded-xl border-border/50 hover:border-primary/50 transition-all w-full sm:w-auto order-2 sm:order-1"
         >
           ← Back to Electives
         </Button>
 
-        <div className="flex gap-2">
+        <div className="flex flex-col xs:flex-row gap-2 order-1 sm:order-2">
           {/* Only admins can edit */}
           <RoleProtected allowedRoles="admin">
             <Button
               variant="default"
               onClick={() => setEditDialogOpen(true)}
-              className="rounded-xl transition-all"
+              className="rounded-xl transition-all w-full xs:w-auto"
             >
               ✏️ Edit Elective
             </Button>
@@ -194,7 +194,7 @@ const ElectiveDetailPage = () => {
               variant={isFavorited ? "destructive" : "outline"}
               onClick={toggleFavorite}
               disabled={favoriteLoading}
-              className={`rounded-xl border-border/50 hover:border-primary/50 transition-all ${
+              className={`rounded-xl border-border/50 hover:border-primary/50 transition-all w-full xs:w-auto ${
                 favoriteLoading ? "animate-pulse" : ""
               }`}
             >
