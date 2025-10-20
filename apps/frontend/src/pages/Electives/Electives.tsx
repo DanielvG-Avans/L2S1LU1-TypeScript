@@ -2,7 +2,7 @@ import { ElectiveCreateDialog } from "@/components/elective/ElectiveFormDialog";
 import ElectiveFilter from "@/components/elective/ElectiveFilter";
 import { RoleProtected } from "@/components/auth/RoleProtected";
 import ElectiveCard from "@/components/elective/ElectiveCard";
-import { Search, ArrowUpDown, Plus } from "lucide-react";
+import { Search, ArrowUpDown, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { useElectives } from "@/hooks/useElectives";
 import React, { useEffect, useState } from "react";
 import type { Elective } from "@/types/Elective";
@@ -27,6 +27,10 @@ export default function ElectivePage(): React.ReactNode {
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("name");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -82,7 +86,14 @@ export default function ElectivePage(): React.ReactNode {
     });
 
     setFiltered(result);
+    setCurrentPage(1); // Reset to first page when filters change
   }, [electives, query, sortBy, filters]);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedElectives = filtered.slice(startIndex, endIndex);
 
   if (loading) return <ErrorState loading={true} />;
   if (error) return <ErrorState error={error} />;
@@ -173,7 +184,7 @@ export default function ElectivePage(): React.ReactNode {
           </RoleProtected>
         </div>
 
-        {/* Search + Sort */}
+        {/* Search + Sort + Items per page */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -185,21 +196,43 @@ export default function ElectivePage(): React.ReactNode {
             />
           </div>
 
-          <Select onValueChange={setSortBy} defaultValue="name">
-            <SelectTrigger className="w-[140px]">
-              <ArrowUpDown className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="name">Name (A–Z)</SelectItem>
-              <SelectItem value="credits">Credits (High–Low)</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2">
+            <Select onValueChange={(value) => setItemsPerPage(Number(value))} defaultValue="10">
+              <SelectTrigger className="w-[100px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="5">5 / page</SelectItem>
+                <SelectItem value="10">10 / page</SelectItem>
+                <SelectItem value="20">20 / page</SelectItem>
+                <SelectItem value="50">50 / page</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select onValueChange={setSortBy} defaultValue="name">
+              <SelectTrigger className="w-[140px]">
+                <ArrowUpDown className="mr-2 h-4 w-4" />
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name">Name (A–Z)</SelectItem>
+                <SelectItem value="credits">Credits (High–Low)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
+
+        {/* Results Info */}
+        {filtered.length > 0 && (
+          <div className="text-sm text-muted-foreground">
+            Showing {startIndex + 1}–{Math.min(endIndex, filtered.length)} of {filtered.length}{" "}
+            electives
+          </div>
+        )}
 
         {/* Results Grid */}
         <div className="grid grid-cols-1 gap-6">
-          {filtered.map((m) => (
+          {paginatedElectives.map((m) => (
             <ElectiveCard key={m.id} elective={m} />
           ))}
         </div>
@@ -208,6 +241,61 @@ export default function ElectivePage(): React.ReactNode {
           <div className="text-center text-muted-foreground mt-20 p-8 bg-card border border-border rounded-lg">
             <p className="text-lg font-medium text-card-foreground">No electives found</p>
             <p className="text-sm mt-2">Try adjusting your filters or search query.</p>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {filtered.length > 0 && totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-6">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
+            </Button>
+
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                // Show first page, last page, current page, and pages around current
+                if (
+                  page === 1 ||
+                  page === totalPages ||
+                  (page >= currentPage - 1 && page <= currentPage + 1)
+                ) {
+                  return (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(page)}
+                      className="w-9"
+                    >
+                      {page}
+                    </Button>
+                  );
+                } else if (page === currentPage - 2 || page === currentPage + 2) {
+                  return (
+                    <span key={page} className="px-2 text-muted-foreground">
+                      ...
+                    </span>
+                  );
+                }
+                return null;
+              })}
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
         )}
       </main>
